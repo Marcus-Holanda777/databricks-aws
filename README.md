@@ -114,7 +114,7 @@ Pronto — agora siga a seção "Como executar" para init/plan/apply.
 - Databricks Unity Catalog (criar metastore): https://docs.databricks.com/aws/en/data-governance/unity-catalog/create-metastore
 - Databricks API auth (PATs / tokens): https://docs.databricks.com/aws/en/dev-tools/auth/
 
-## Contribuição
+## Variáveis principais
 
 As variáveis abaixo foram extraídas dos arquivos `variables.tf` presentes no ambiente `dev` e nos módulos. Elas representam as entradas principais que você verá ao usar este projeto.
 
@@ -184,3 +184,13 @@ Se você utilizou um backend remoto para o estado, verifique e remova quaisquer 
 
 - `terraform/env/dev/` — configurações e estado local do ambiente de desenvolvimento
 - `terraform/modules/` — módulos reutilizáveis (VPC, S3, IAM, Databricks, etc.)
+
+## Próximos passos
+
+- Estudar o provider Databricks e recursos básicos (jobs, clusters).
+- Criar módulo `modules/databricks_cluster` para clusters reutilizáveis.
+- Implementar módulo `modules/databricks_job` que execute scripts/notebooks.
+- Guardar scripts ETL em S3 (ou DBFS) e referenciá-los nos jobs.
+- Testar com `terraform -chdir="terraform/env/dev" plan` e `apply` em dev.
+- Verificar execução e logs no Databricks UI/DBFS.
+- Automatizar via CI/CD e configurar backend remoto (S3 + DynamoDB).
