@@ -1,0 +1,33 @@
+# Exemplo de terraform.tfvars para o ambiente dev
+# Substitua os valores abaixo por valores reais em um arquivo `terraform.tfvars` que NÃO deve ser versionado.
+
+aws_region = "us-east-1"
+profile_name = "meu-perfil-aws"
+
+bucket_name = "meu-bucket-databricks-dev"
+
+# Databricks - não colocar client_secret em VCS
+databricks_account_id = "1234567890123456"
+client_id = "example-client-id"
+client_secret = "EXAMPLE_CLIENT_SECRET"
+
+email_admin = "admin@empresa.com"
+
+# Grupo de exemplo - formato: {"group_name" = ["email1@ex.com", "email2@ex.com"]}
+group_members = {
+  "admins" = ["admin@empresa.com"]
+  "data-team" = ["data1@empresa.com", "data2@empresa.com"]
+}
+
+# VPC/CIDR
+cidr_block = "10.0.0.0/16"
+public_subnet_cidr_1 = "10.0.1.0/24"
+public_subnet_cidr_2 = "10.0.2.0/24"
+private_subnet_cidr_1 = "10.0.101.0/24"
+private_subnet_cidr_2 = "10.0.102.0/24"
+
+# Tags
+tags = {
+  "Project" = "start_job"
+  "Environment" = "dev"
+}

@@ -1,0 +1,217 @@
+resource "databricks_storage_credential" "external_creds" {
+  name = "aws-s3-credential-${var.environment}"
+  aws_iam_role {
+    role_arn = var.unity_catalog_role_arn
+  }
+
+  force_destroy = var.environment == "dev" ? true : false
+}
+
+resource "databricks_external_location" "raw" {
+  name            = "s3_raw_${var.environment}"
+  url             = "s3://${var.bucket_raw_id}/"
+  credential_name = databricks_storage_credential.external_creds.name
+  force_destroy = var.environment == "dev" ? true : false
+}
+
+resource "databricks_external_location" "bronze" {
+  name            = "s3_bronze_${var.environment}"
+  url             = "s3://${var.bucket_bronze_id}/"
+  credential_name = databricks_storage_credential.external_creds.name
+  force_destroy = var.environment == "dev" ? true : false
+}
+
+resource "databricks_external_location" "silver" {
+  name            = "s3_silver_${var.environment}"
+  url             = "s3://${var.bucket_silver_id}/"
+  credential_name = databricks_storage_credential.external_creds.name
+  force_destroy = var.environment == "dev" ? true : false
+}
+
+resource "databricks_external_location" "gold" {
+  name            = "s3_gold_${var.environment}"
+  url             = "s3://${var.bucket_gold_id}/"
+  credential_name = databricks_storage_credential.external_creds.name
+  force_destroy = var.environment == "dev" ? true : false
+}
+
+resource "databricks_catalog" "raw_catalog" {
+  name          = "raw"
+  storage_root  = "s3://${var.bucket_raw_id}/"
+  comment       = "Camada Raw - Dados Originais"
+  force_destroy = var.environment == "dev" ? true : false
+
+  depends_on = [ databricks_external_location.raw ]
+}
+
+resource "databricks_schema" "raw_schema" {
+  name         = "external"
+  catalog_name = databricks_catalog.raw_catalog.name
+  comment      = "Esquema para dados originais da camada Raw"
+  force_destroy = var.environment == "dev" ? true : false
+}
+
+resource "databricks_volume" "raw_volume" {
+  name = "raw_volume_${var.environment}"
+  catalog_name = databricks_catalog.raw_catalog.name
+  schema_name = databricks_schema.raw_schema.name
+  volume_type = "EXTERNAL"
+
+  storage_location = "s3://${var.bucket_raw_id}/landing_zone/"
+
+  depends_on = [ databricks_external_location.raw ]
+}
+
+resource "databricks_catalog" "bronze_catalog" {
+  name          = "bronze"
+  storage_root  = "s3://${var.bucket_bronze_id}/"
+  comment       = "Camada Bronze - Dados Brutos"
+  force_destroy = var.environment == "dev" ? true : false
+
+  depends_on = [ databricks_external_location.bronze ]
+}
+
+resource "databricks_schema" "bronze_schema" {
+  name         = "dbo"
+  catalog_name = databricks_catalog.bronze_catalog.name
+  comment      = "Esquema para dados brutos da camada Bronze"
+  force_destroy = var.environment == "dev" ? true : false
+}
+
+resource "databricks_catalog" "silver_catalog" {
+  name          = "silver"
+  storage_root  = "s3://${var.bucket_silver_id}/"
+  comment       = "Camada Silver - Dados Limpos"
+  force_destroy = var.environment == "dev" ? true : false
+
+  depends_on = [ databricks_external_location.silver ]
+}
+
+resource "databricks_schema" "silver_schema" {
+  name         = "dbo"
+  catalog_name = databricks_catalog.silver_catalog.name
+  comment      = "Esquema para dados limpos da camada Silver"
+  force_destroy = var.environment == "dev" ? true : false
+}
+
+resource "databricks_catalog" "gold_catalog" {
+  name          = "gold"
+  storage_root  = "s3://${var.bucket_gold_id}/"
+  comment       = "Camada Gold - Prontos para BI"
+  force_destroy = var.environment == "dev" ? true : false
+
+  depends_on = [ databricks_external_location.gold ]
+}
+
+resource "databricks_schema" "gold_schema" {
+  name         = "dbo"
+  catalog_name = databricks_catalog.gold_catalog.name
+  comment      = "Esquema para dados prontos para BI da camada Gold"
+  force_destroy = var.environment == "dev" ? true : false
+}
+
+resource "databricks_grants" "admin_raw" {
+  catalog    = databricks_catalog.raw_catalog.name
+  grant { 
+      principal = var.admin_group_name
+      privileges = ["ALL_PRIVILEGES"] 
+  }
+}
+
+resource "databricks_grants" "admin_bronze" {
+  catalog    = databricks_catalog.bronze_catalog.name
+  grant { 
+      principal = var.admin_group_name
+      privileges = ["ALL_PRIVILEGES"] 
+  }
+}
+
+resource "databricks_grants" "admin_silver" {
+  catalog    = databricks_catalog.silver_catalog.name
+  grant { 
+    principal = var.admin_group_name
+    privileges = ["ALL_PRIVILEGES"] 
+  }
+
+  grant {
+    principal = var.user_group_name
+    privileges = ["USE_CATALOG", "USE_SCHEMA", "SELECT"]
+  }
+}
+
+resource "databricks_grants" "admin_gold" {
+  catalog    = databricks_catalog.gold_catalog.name
+  grant { 
+    principal = var.admin_group_name
+    privileges = ["ALL_PRIVILEGES"] 
+  }
+
+  grant {
+    principal = var.user_group_name
+    privileges = ["USE_CATALOG", "USE_SCHEMA", "SELECT"]
+  }
+}
+
+resource "databricks_cluster_policy" "user_policy" {
+  name = "Politica-Restrita-Users-${var.environment}"
+  definition = jsonencode({
+    "node_type_id" : {
+      "type" : "allowlist",
+      "values" : [
+        "m5.xlarge",
+        "m5.2xlarge",
+        "r5.xlarge"
+      ],
+      "default" : "m5.xlarge"
+    },
+    "num_workers" : {
+      "type" : "fixed",
+      "value" : 0
+    },
+    "autoscale.max_workers" : {
+      "type" : "forbidden"
+    },
+    "autoscale.min_workers" : {
+      "type" : "forbidden"
+    },
+    "autotermination_minutes" : {
+      "type" : "fixed",
+      "value" : 10
+    },
+    "aws_attributes.availability" : {
+      "type" : "fixed",
+      "value" : "SPOT"
+    },
+    "aws_attributes.spot_bid_price_percent" : {
+      "type" : "fixed",
+      "value" : 100
+    }
+  })
+}
+
+resource "databricks_permissions" "policy_user_grant" {
+  cluster_policy_id = databricks_cluster_policy.user_policy.id
+  access_control {
+    group_name       = var.user_group_name
+    permission_level = "CAN_USE"
+  }
+}
+
+resource "databricks_sql_endpoint" "user_warehouse" {
+  name             = "SQL-Warehouse-Users-${var.environment}"
+  cluster_size     = "2X-Small"
+  min_num_clusters = 1
+  max_num_clusters = 1
+  auto_stop_mins   = 10
+
+  warehouse_type = "PRO"
+  enable_serverless_compute = true
+}
+
+resource "databricks_permissions" "warehouse_user_grant" {
+  sql_endpoint_id = databricks_sql_endpoint.user_warehouse.id
+  access_control {
+    group_name       = var.user_group_name
+    permission_level = "CAN_USE"
+  }
+}
