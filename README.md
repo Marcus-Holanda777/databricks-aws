@@ -89,11 +89,11 @@ Como este é um ambiente de laboratório focado nos estudos, é preciso uma abor
 * **Ações de Preparação:** O fluxo de aquisição é iniciado no Marketplace para criar o vínculo entre as contas. Nessa etapa, coleta-se o **Account ID** do Databricks e realizam-se as configurações de autenticação necessárias para o provedor do Terraform; para isso, cria-se um *Service Principal* dedicado dentro do Databricks Account Console para gerar as credenciais de acesso (`client_id` e `client_secret`), garantindo uma autenticação segura e automatizada via código.
 
 > [!IMPORTANT]
-> 🔬 **Por que o fluxo é interrompido manualmente?**
+> **Por que o fluxo é interrompido manualmente?**
 > O assistente automático do Marketplace é **interrompido intencionalmente** antes da criação automática dos Workspaces ou do Metastore padrão. Essa decisão de arquitetura é tomada porque o objetivo do laboratório é aprender a provisionar **toda a infraestrutura de forma 100% declarativa**. Interromper esse fluxo automatizado obriga ao gerenciamento e entendimento do nascimento de cada recurso (redes, segurança e storage) através dos próprios scripts do Terraform.
 
 > [!NOTE]
-> * **Nota sobre Créditos de Estudo:** Para fins de aprendizado, vale destacar que algumas ofertas do Databricks no AWS Marketplace oferecem créditos promocionais de avaliação (*Free Trial*). É uma excelente oportunidade encontrada para testar recursos avançados sem custo inicial (recomenda-se sempre verificar os termos vigentes na página do produto).
+> **Créditos de Estudo:** Para fins de aprendizado, vale destacar que algumas ofertas do Databricks no AWS Marketplace oferecem créditos promocionais de avaliação (*Free Trial*). É uma excelente oportunidade encontrada para testar recursos avançados sem custo inicial (recomenda-se sempre verificar os termos vigentes na página do produto).
 
 4) Preencher variáveis locais
 - Copie o exemplo e edite localmente (NÃO versionar):
