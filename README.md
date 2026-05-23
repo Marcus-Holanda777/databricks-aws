@@ -38,6 +38,12 @@ Os módulos ficam em `terraform/modules/` e um ambiente de exemplo (`dev`) está
 - Databricks Users & Groups: criação e associação de usuários e grupos (por e-mail).
 	- Por que: permite gestão centralizada de identidades e permissões dentro do workspace, simplificando onboarding e auditoria.
 
+- Política de Cluster restrita (`GROUP_USER`): uma policy que limita tipos de instâncias e permissões de criação de clusters para usuários no grupo `GROUP_USER`.
+	- Por que: reduz riscos de custo e garante que usuários usem configurações aprovadas para recursos computacionais.
+
+- Endpoint SQL serverless personalizado: provisionado para consultas ad-hoc leves e integração com notebooks/jobs.
+	- Por que: oferece um endpoint gerenciado e otimizado para workloads analíticos leves sem necessidade de provisionar clusters dedicados.
+
 > [!WARNING] 
 > O metastore (Unity Catalog) pode ser provisionado automaticamente pelo Databricks ou gerenciado via APIs específicas. Evite criar o metastore manualmente no Console se o Terraform ou módulos deste repositório forem responsáveis por provisioná-lo — criar manualmente pode causar conflitos. Verifique a configuração do módulo `databricks_metastore` antes de criar recursos manualmente.
 
@@ -190,7 +196,4 @@ Se você utilizou um backend remoto para o estado, verifique e remova quaisquer 
 - Estudar o provider Databricks e recursos básicos (jobs, clusters).
 - Criar módulo `modules/databricks_cluster` para clusters reutilizáveis.
 - Implementar módulo `modules/databricks_job` que execute scripts/notebooks.
-- Guardar scripts ETL em S3 (ou DBFS) e referenciá-los nos jobs.
-- Testar com `terraform -chdir="terraform/env/dev" plan` e `apply` em dev.
-- Verificar execução e logs no Databricks UI/DBFS.
 - Automatizar via CI/CD e configurar backend remoto (S3 + DynamoDB).
