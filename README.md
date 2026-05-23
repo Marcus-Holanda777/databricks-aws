@@ -34,8 +34,9 @@ Os módulos ficam em `terraform/modules/` e um ambiente de exemplo (`dev`) está
 
 - Unity Catalog / Metastore: criação/configuração do metastore e ligação com buckets S3 e roles.
 	- Por que: fornece governança de dados centralizada, catálogo unificado de tabelas e controle de acesso; é essencial para organização de dados e compliance.
-
-	**ATENÇÃO:** o metastore (Unity Catalog) pode ser provisionado automaticamente pelo Databricks ou gerenciado via APIs específicas. Evite criar o metastore manualmente no Console se o Terraform ou módulos deste repositório forem responsáveis por provisioná-lo — criar manualmente pode causar conflitos. Verifique a configuração do módulo `databricks_metastore` antes de criar recursos manualmente.
+    
+    > [!WARNING] 
+	> **ATENÇÃO:** o metastore (Unity Catalog) pode ser provisionado automaticamente pelo Databricks ou gerenciado via APIs específicas. Evite criar o metastore manualmente no Console se o Terraform ou módulos deste repositório forem responsáveis por provisioná-lo — criar manualmente pode causar conflitos. Verifique a configuração do módulo `databricks_metastore` antes de criar recursos manualmente.
 
 - Databricks Users & Groups: criação e associação de usuários e grupos (por e-mail).
 	- Por que: permite gestão centralizada de identidades e permissões dentro do workspace, simplificando onboarding e auditoria.
@@ -85,9 +86,9 @@ Como este é um ambiente de laboratório focado nos estudos, é preciso uma abor
 
 * **Caminho de Configuração:** A ativação da conta é realizada via **AWS Marketplace**, assinando o produto oficial do Databricks. Esse caminho é o padrão de mercado para unificar o faturamento (*billing*) diretamente na conta da AWS.
 
-* **Ações de Preparação:** O fluxo de aquisição é iniciado no Marketplace para criar o vínculo entre as contas. Nessa etapa, coletam-se o **Account ID** do Databricks e as credenciais de autenticação necessárias para o provedor do Terraform (`client_id`/`client_secret` ou *Personal Access Token* - PAT).
+* **Ações de Preparação:** O fluxo de aquisição é iniciado no Marketplace para criar o vínculo entre as contas. Nessa etapa, coleta-se o **Account ID** do Databricks e realizam-se as configurações de autenticação necessárias para o provedor do Terraform; para isso, cria-se um *Service Principal* dedicado dentro do Databricks Account Console para gerar as credenciais de acesso (`client_id` e `client_secret`), garantindo uma autenticação segura e automatizada via código.
 
-> [!NOTE]
+> [!IMPORTANT]
 > 🔬 **Por que o fluxo é interrompido manualmente?**
 > O assistente automático do Marketplace é **interrompido intencionalmente** antes da criação automática dos Workspaces ou do Metastore padrão. Essa decisão de arquitetura é tomada porque o objetivo do laboratório é aprender a provisionar **toda a infraestrutura de forma 100% declarativa**. Interromper esse fluxo automatizado obriga ao gerenciamento e entendimento do nascimento de cada recurso (redes, segurança e storage) através dos próprios scripts do Terraform.
 
