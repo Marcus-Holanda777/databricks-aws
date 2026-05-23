@@ -1,10 +1,10 @@
 resource "databricks_group" "this" {
-  for_each = var.group_members
+  for_each     = var.group_members
   display_name = "GROUP_${upper(each.key)}_${upper(var.environment)}"
 }
 
 resource "databricks_user" "this" {
-  for_each = local.all_emails
+  for_each     = local.all_emails
   user_name    = each.value
   display_name = split("@", each.value)[0]
 }

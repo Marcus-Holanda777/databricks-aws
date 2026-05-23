@@ -10,7 +10,7 @@ variable "environment" {
 
 variable "tags" {
   description = "A map of tags to assign to the VPC."
-  type = map(string)
+  type        = map(string)
 }
 
 variable "aws_region" {
@@ -19,26 +19,26 @@ variable "aws_region" {
 }
 
 variable "public_subnet_cidr_1" {
-   description = "The CIDR block for the first public subnet."
-   type        = string
+  description = "The CIDR block for the first public subnet."
+  type        = string
 }
 
 variable "public_subnet_cidr_2" {
-    description = "The CIDR block for the second public subnet"
-    type        = string
+  description = "The CIDR block for the second public subnet"
+  type        = string
 }
 
 variable "private_subnet_cidr_1" {
-    description = "The CIDR block for the first private subnet."
-    type        = string
+  description = "The CIDR block for the first private subnet."
+  type        = string
 }
 
 variable "private_subnet_cidr_2" {
-    description = "The CIDR block for the second private subnet."
-    type        = string
+  description = "The CIDR block for the second private subnet."
+  type        = string
 }
 
 variable "multi_az_nat" {
-    description = "Boolean to determine if multiple NAT gateways should be created for high availability across multiple availability zones."
-    type        = bool
+  description = "Boolean to determine if multiple NAT gateways should be created for high availability across multiple availability zones."
+  type        = bool
 }

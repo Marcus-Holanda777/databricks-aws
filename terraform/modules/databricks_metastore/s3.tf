@@ -2,10 +2,10 @@ resource "aws_s3_bucket" "metastore" {
   bucket        = "${var.bucket_name}-${var.aws_region}-${data.aws_caller_identity.current.account_id}"
   force_destroy = true
 
-   tags = merge(
+  tags = merge(
     {
-      Name        = "${var.bucket_name}-${var.aws_region}-${data.aws_caller_identity.current.account_id}"
-      Component   = "Storage-Lakehouse"
+      Name      = "${var.bucket_name}-${var.aws_region}-${data.aws_caller_identity.current.account_id}"
+      Component = "Storage-Lakehouse"
     },
     var.tags
   )

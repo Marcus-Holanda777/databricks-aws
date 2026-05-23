@@ -7,12 +7,12 @@ data "aws_caller_identity" "current" {}
 
 data "aws_iam_policy_document" "unity_catalog_s3_policy_doc" {
   statement {
-    sid       = "S3Access"
-    actions   = [
-      "s3:GetObject", 
-      "s3:PutObject", 
-      "s3:DeleteObject", 
-      "s3:ListBucket", 
+    sid = "S3Access"
+    actions = [
+      "s3:GetObject",
+      "s3:PutObject",
+      "s3:DeleteObject",
+      "s3:ListBucket",
       "s3:GetBucketLocation"
     ]
     resources = [
@@ -40,7 +40,7 @@ data "aws_iam_policy_document" "unity_catalog_trust_policy" {
     actions = ["sts:AssumeRole"]
     principals {
       type        = "AWS"
-      identifiers = ["arn:aws:iam::414351767826:root"] 
+      identifiers = ["arn:aws:iam::414351767826:root"]
     }
     condition {
       test     = "StringEquals"

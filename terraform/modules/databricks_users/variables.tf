@@ -11,21 +11,21 @@ locals {
 }
 
 variable "environment" {
-    description = "Ambiente de implantação (ex: dev, staging, prod)"
-    type        = string
+  description = "Ambiente de implantação (ex: dev, staging, prod)"
+  type        = string
 }
 
 variable "email_admin" {
-    description = "E-mail do usuário administrador do Databricks, para adiconá-lo ao grupo de admins do workspace"
-    type        = string
+  description = "E-mail do usuário administrador do Databricks, para adiconá-lo ao grupo de admins do workspace"
+  type        = string
 }
 
 variable "workspace_id" {
-    description = "ID do workspace do Databricks para atribuição de permissões"
-    type = string
+  description = "ID do workspace do Databricks para atribuição de permissões"
+  type        = string
 }
 
 variable "group_members" {
-    description = "Mapeamento de grupos e seus respectivos membros (e-mails)"
-    type = map(list(string))
+  description = "Mapeamento de grupos e seus respectivos membros (e-mails)"
+  type        = map(list(string))
 }

@@ -5,114 +5,114 @@ resource "aws_vpc" "databricks_vpc" {
 
   tags = merge(
     {
-      Name = "mvsh-databricks-${var.environment}-vpc",
+      Name        = "mvsh-databricks-${var.environment}-vpc",
       Environment = var.environment,
-      Component = "Network-Core",
+      Component   = "Network-Core",
     },
     var.tags,
-  ) 
+  )
 }
 
 resource "aws_internet_gateway" "igw" {
-    vpc_id = aws_vpc.databricks_vpc.id
-    
-    tags = merge(
+  vpc_id = aws_vpc.databricks_vpc.id
+
+  tags = merge(
     {
-        Name = "mvsh-databricks-${var.environment}-igw",
-        Environment = var.environment,
-        Component = "Network-Core",
+      Name        = "mvsh-databricks-${var.environment}-igw",
+      Environment = var.environment,
+      Component   = "Network-Core",
     },
     var.tags,
- )
-  
+  )
+
 }
 
 resource "aws_subnet" "public_az1" {
-    vpc_id            = aws_vpc.databricks_vpc.id
-    cidr_block        = var.public_subnet_cidr_1
-    availability_zone = "${var.aws_region}a"
+  vpc_id            = aws_vpc.databricks_vpc.id
+  cidr_block        = var.public_subnet_cidr_1
+  availability_zone = "${var.aws_region}a"
 
-    tags = merge(
+  tags = merge(
     {
-        Name = "mvsh-databricks-${var.environment}-public-subnet-az1",
-        Environment = var.environment,
-        Component = "Network-Core",
+      Name        = "mvsh-databricks-${var.environment}-public-subnet-az1",
+      Environment = var.environment,
+      Component   = "Network-Core",
     },
     var.tags,
- )
+  )
 }
 
 resource "aws_subnet" "public_az2" {
-    vpc_id            = aws_vpc.databricks_vpc.id
-    cidr_block        = var.public_subnet_cidr_2
-    availability_zone = "${var.aws_region}b"
+  vpc_id            = aws_vpc.databricks_vpc.id
+  cidr_block        = var.public_subnet_cidr_2
+  availability_zone = "${var.aws_region}b"
 
-    tags = merge(
+  tags = merge(
     {
-        Name = "mvsh-databricks-${var.environment}-public-subnet-az2",
-        Environment = var.environment,
-        Component = "Network-Core",
+      Name        = "mvsh-databricks-${var.environment}-public-subnet-az2",
+      Environment = var.environment,
+      Component   = "Network-Core",
     },
     var.tags,
- ) 
+  )
 }
 
 resource "aws_subnet" "private_az1" {
-    vpc_id            = aws_vpc.databricks_vpc.id
-    cidr_block        = var.private_subnet_cidr_1
-    availability_zone = "${var.aws_region}a"
+  vpc_id            = aws_vpc.databricks_vpc.id
+  cidr_block        = var.private_subnet_cidr_1
+  availability_zone = "${var.aws_region}a"
 
-    tags = merge(
+  tags = merge(
     {
-        Name = "mvsh-databricks-${var.environment}-private-subnet-az1",
-        Environment = var.environment,
-        Component = "Network-Core",
+      Name        = "mvsh-databricks-${var.environment}-private-subnet-az1",
+      Environment = var.environment,
+      Component   = "Network-Core",
     },
     var.tags,
- ) 
+  )
 }
 
 resource "aws_subnet" "private_az2" {
-    vpc_id            = aws_vpc.databricks_vpc.id
-    cidr_block        = var.private_subnet_cidr_2
-    availability_zone = "${var.aws_region}b"
+  vpc_id            = aws_vpc.databricks_vpc.id
+  cidr_block        = var.private_subnet_cidr_2
+  availability_zone = "${var.aws_region}b"
 
-    tags = merge(
+  tags = merge(
     {
-        Name = "mvsh-databricks-${var.environment}-private-subnet-az2",
-        Environment = var.environment,
-        Component = "Network-Core",
+      Name        = "mvsh-databricks-${var.environment}-private-subnet-az2",
+      Environment = var.environment,
+      Component   = "Network-Core",
     },
     var.tags,
- ) 
+  )
 }
 
 resource "aws_eip" "nat_eip" {
-    count = var.multi_az_nat ? 2 : 1
-    domain = "vpc"
-    depends_on = [ aws_internet_gateway.igw ]
+  count      = var.multi_az_nat ? 2 : 1
+  domain     = "vpc"
+  depends_on = [aws_internet_gateway.igw]
 
 
-    tags = merge(
+  tags = merge(
     {
-        Name = "mvsh-databricks-${count.index}-${var.environment}-nat-eip",
-        Environment = var.environment,
-        Component = "Network-Core",
+      Name        = "mvsh-databricks-${count.index}-${var.environment}-nat-eip",
+      Environment = var.environment,
+      Component   = "Network-Core",
     },
     var.tags,
- ) 
+  )
 }
 
 resource "aws_nat_gateway" "nat_gw" {
-  count = var.multi_az_nat ? 2 : 1
+  count         = var.multi_az_nat ? 2 : 1
   allocation_id = aws_eip.nat_eip[count.index].id
-  subnet_id = count.index == 0 ? aws_subnet.public_az1.id : aws_subnet.public_az2.id
+  subnet_id     = count.index == 0 ? aws_subnet.public_az1.id : aws_subnet.public_az2.id
 
-    tags = merge(
+  tags = merge(
     {
-        Name = "mvsh-databricks-${count.index}-${var.environment}-nat-gw",
-        Environment = var.environment,
-        Component = "Network-Core",
+      Name        = "mvsh-databricks-${count.index}-${var.environment}-nat-gw",
+      Environment = var.environment,
+      Component   = "Network-Core",
     },
     var.tags,
   )
@@ -126,9 +126,9 @@ resource "aws_route_table" "public_rt" {
   }
   tags = merge(
     {
-        Name = "mvsh-databricks-${var.environment}-public-rt",
-        Environment = var.environment,
-        Component = "Network-Core",
+      Name        = "mvsh-databricks-${var.environment}-public-rt",
+      Environment = var.environment,
+      Component   = "Network-Core",
     },
     var.tags,
   )
@@ -154,9 +154,9 @@ resource "aws_route_table" "private_rt" {
 
   tags = merge(
     {
-        Name = "mvsh-databricks-${count.index}-${var.environment}-private-rt",
-        Environment = var.environment,
-        Component = "Network-Core",
+      Name        = "mvsh-databricks-${count.index}-${var.environment}-private-rt",
+      Environment = var.environment,
+      Component   = "Network-Core",
     },
     var.tags,
   )
@@ -173,22 +173,22 @@ resource "aws_route_table_association" "private_2" {
 }
 
 resource "aws_vpc_endpoint" "s3_endpoint" {
-    vpc_id            = aws_vpc.databricks_vpc.id
-    service_name      = "com.amazonaws.${var.aws_region}.s3"
-    vpc_endpoint_type = "Gateway"
-    route_table_ids   = [
-        aws_route_table.private_rt[0].id,
-        var.multi_az_nat ? aws_route_table.private_rt[1].id : aws_route_table.private_rt[0].id
-    ]
-    
-    tags = merge(
-        {
-            Name = "mvsh-databricks-${var.environment}-s3-endpoint",
-            Environment = var.environment,
-            Component = "Network-Core",
-        },
-        var.tags,
-    )
+  vpc_id            = aws_vpc.databricks_vpc.id
+  service_name      = "com.amazonaws.${var.aws_region}.s3"
+  vpc_endpoint_type = "Gateway"
+  route_table_ids = [
+    aws_route_table.private_rt[0].id,
+    var.multi_az_nat ? aws_route_table.private_rt[1].id : aws_route_table.private_rt[0].id
+  ]
+
+  tags = merge(
+    {
+      Name        = "mvsh-databricks-${var.environment}-s3-endpoint",
+      Environment = var.environment,
+      Component   = "Network-Core",
+    },
+    var.tags,
+  )
 }
 
 resource "aws_security_group" "databricks_sg" {
@@ -212,9 +212,9 @@ resource "aws_security_group" "databricks_sg" {
 
   tags = merge(
     {
-        Name = "mvsh-databricks-${var.environment}-sg",
-        Environment = var.environment,
-        Component = "Network-Core",
+      Name        = "mvsh-databricks-${var.environment}-sg",
+      Environment = var.environment,
+      Component   = "Network-Core",
     },
     var.tags,
   )

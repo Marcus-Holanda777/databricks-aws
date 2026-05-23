@@ -28,10 +28,10 @@ resource "aws_iam_policy" "unity_metastore" {
     ]
   })
 
-   tags = merge(
+  tags = merge(
     {
-      Name        = "databricks-unity-catalog-metastore-access-iam-policy"
-      Component   = "IAM Role for Databricks Unity Catalog Metastore Access"
+      Name      = "databricks-unity-catalog-metastore-access-iam-policy"
+      Component = "IAM Role for Databricks Unity Catalog Metastore Access"
     },
     var.tags
   )
@@ -62,21 +62,21 @@ resource "aws_iam_policy" "sample_data" {
 
   tags = merge(
     {
-      Name        = "databricks-unity-catalog-sample-data-access-iam-policy"
-      Component   = "Storage-Lakehouse-Sample-Data"
+      Name      = "databricks-unity-catalog-sample-data-access-iam-policy"
+      Component = "Storage-Lakehouse-Sample-Data"
     },
     var.tags
   )
 }
 
 resource "aws_iam_role" "metastore_data_access" {
-  name                = local.iam_role_name
-  assume_role_policy  = data.aws_iam_policy_document.passrole_for_uc.json
+  name               = local.iam_role_name
+  assume_role_policy = data.aws_iam_policy_document.passrole_for_uc.json
 
   tags = merge(
     {
-      Name        = "databricks-unity-catalog-metastore-access-iam-role"
-      Component   = "IAM Role for Databricks Unity Catalog Metastore Access"
+      Name      = "databricks-unity-catalog-metastore-access-iam-role"
+      Component = "IAM Role for Databricks Unity Catalog Metastore Access"
     },
     var.tags
   )

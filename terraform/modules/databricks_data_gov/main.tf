@@ -11,28 +11,28 @@ resource "databricks_external_location" "raw" {
   name            = "s3_raw_${var.environment}"
   url             = "s3://${var.bucket_raw_id}/"
   credential_name = databricks_storage_credential.external_creds.name
-  force_destroy = var.environment == "dev" ? true : false
+  force_destroy   = var.environment == "dev" ? true : false
 }
 
 resource "databricks_external_location" "bronze" {
   name            = "s3_bronze_${var.environment}"
   url             = "s3://${var.bucket_bronze_id}/"
   credential_name = databricks_storage_credential.external_creds.name
-  force_destroy = var.environment == "dev" ? true : false
+  force_destroy   = var.environment == "dev" ? true : false
 }
 
 resource "databricks_external_location" "silver" {
   name            = "s3_silver_${var.environment}"
   url             = "s3://${var.bucket_silver_id}/"
   credential_name = databricks_storage_credential.external_creds.name
-  force_destroy = var.environment == "dev" ? true : false
+  force_destroy   = var.environment == "dev" ? true : false
 }
 
 resource "databricks_external_location" "gold" {
   name            = "s3_gold_${var.environment}"
   url             = "s3://${var.bucket_gold_id}/"
   credential_name = databricks_storage_credential.external_creds.name
-  force_destroy = var.environment == "dev" ? true : false
+  force_destroy   = var.environment == "dev" ? true : false
 }
 
 resource "databricks_catalog" "raw_catalog" {
@@ -41,25 +41,25 @@ resource "databricks_catalog" "raw_catalog" {
   comment       = "Camada Raw - Dados Originais"
   force_destroy = var.environment == "dev" ? true : false
 
-  depends_on = [ databricks_external_location.raw ]
+  depends_on = [databricks_external_location.raw]
 }
 
 resource "databricks_schema" "raw_schema" {
-  name         = "external"
-  catalog_name = databricks_catalog.raw_catalog.name
-  comment      = "Esquema para dados originais da camada Raw"
+  name          = "external"
+  catalog_name  = databricks_catalog.raw_catalog.name
+  comment       = "Esquema para dados originais da camada Raw"
   force_destroy = var.environment == "dev" ? true : false
 }
 
 resource "databricks_volume" "raw_volume" {
-  name = "raw_volume_${var.environment}"
+  name         = "raw_volume_${var.environment}"
   catalog_name = databricks_catalog.raw_catalog.name
-  schema_name = databricks_schema.raw_schema.name
-  volume_type = "EXTERNAL"
+  schema_name  = databricks_schema.raw_schema.name
+  volume_type  = "EXTERNAL"
 
   storage_location = "s3://${var.bucket_raw_id}/landing_zone/"
 
-  depends_on = [ databricks_external_location.raw ]
+  depends_on = [databricks_external_location.raw]
 }
 
 resource "databricks_catalog" "bronze_catalog" {
@@ -68,13 +68,13 @@ resource "databricks_catalog" "bronze_catalog" {
   comment       = "Camada Bronze - Dados Brutos"
   force_destroy = var.environment == "dev" ? true : false
 
-  depends_on = [ databricks_external_location.bronze ]
+  depends_on = [databricks_external_location.bronze]
 }
 
 resource "databricks_schema" "bronze_schema" {
-  name         = "dbo"
-  catalog_name = databricks_catalog.bronze_catalog.name
-  comment      = "Esquema para dados brutos da camada Bronze"
+  name          = "dbo"
+  catalog_name  = databricks_catalog.bronze_catalog.name
+  comment       = "Esquema para dados brutos da camada Bronze"
   force_destroy = var.environment == "dev" ? true : false
 }
 
@@ -84,13 +84,13 @@ resource "databricks_catalog" "silver_catalog" {
   comment       = "Camada Silver - Dados Limpos"
   force_destroy = var.environment == "dev" ? true : false
 
-  depends_on = [ databricks_external_location.silver ]
+  depends_on = [databricks_external_location.silver]
 }
 
 resource "databricks_schema" "silver_schema" {
-  name         = "dbo"
-  catalog_name = databricks_catalog.silver_catalog.name
-  comment      = "Esquema para dados limpos da camada Silver"
+  name          = "dbo"
+  catalog_name  = databricks_catalog.silver_catalog.name
+  comment       = "Esquema para dados limpos da camada Silver"
   force_destroy = var.environment == "dev" ? true : false
 }
 
@@ -100,54 +100,54 @@ resource "databricks_catalog" "gold_catalog" {
   comment       = "Camada Gold - Prontos para BI"
   force_destroy = var.environment == "dev" ? true : false
 
-  depends_on = [ databricks_external_location.gold ]
+  depends_on = [databricks_external_location.gold]
 }
 
 resource "databricks_schema" "gold_schema" {
-  name         = "dbo"
-  catalog_name = databricks_catalog.gold_catalog.name
-  comment      = "Esquema para dados prontos para BI da camada Gold"
+  name          = "dbo"
+  catalog_name  = databricks_catalog.gold_catalog.name
+  comment       = "Esquema para dados prontos para BI da camada Gold"
   force_destroy = var.environment == "dev" ? true : false
 }
 
 resource "databricks_grants" "admin_raw" {
-  catalog    = databricks_catalog.raw_catalog.name
-  grant { 
-      principal = var.admin_group_name
-      privileges = ["ALL_PRIVILEGES"] 
+  catalog = databricks_catalog.raw_catalog.name
+  grant {
+    principal  = var.admin_group_name
+    privileges = ["ALL_PRIVILEGES"]
   }
 }
 
 resource "databricks_grants" "admin_bronze" {
-  catalog    = databricks_catalog.bronze_catalog.name
-  grant { 
-      principal = var.admin_group_name
-      privileges = ["ALL_PRIVILEGES"] 
+  catalog = databricks_catalog.bronze_catalog.name
+  grant {
+    principal  = var.admin_group_name
+    privileges = ["ALL_PRIVILEGES"]
   }
 }
 
 resource "databricks_grants" "admin_silver" {
-  catalog    = databricks_catalog.silver_catalog.name
-  grant { 
-    principal = var.admin_group_name
-    privileges = ["ALL_PRIVILEGES"] 
+  catalog = databricks_catalog.silver_catalog.name
+  grant {
+    principal  = var.admin_group_name
+    privileges = ["ALL_PRIVILEGES"]
   }
 
   grant {
-    principal = var.user_group_name
+    principal  = var.user_group_name
     privileges = ["USE_CATALOG", "USE_SCHEMA", "SELECT"]
   }
 }
 
 resource "databricks_grants" "admin_gold" {
-  catalog    = databricks_catalog.gold_catalog.name
-  grant { 
-    principal = var.admin_group_name
-    privileges = ["ALL_PRIVILEGES"] 
+  catalog = databricks_catalog.gold_catalog.name
+  grant {
+    principal  = var.admin_group_name
+    privileges = ["ALL_PRIVILEGES"]
   }
 
   grant {
-    principal = var.user_group_name
+    principal  = var.user_group_name
     privileges = ["USE_CATALOG", "USE_SCHEMA", "SELECT"]
   }
 }
@@ -204,7 +204,7 @@ resource "databricks_sql_endpoint" "user_warehouse" {
   max_num_clusters = 1
   auto_stop_mins   = 10
 
-  warehouse_type = "PRO"
+  warehouse_type            = "PRO"
   enable_serverless_compute = true
 }
 

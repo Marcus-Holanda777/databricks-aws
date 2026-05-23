@@ -8,10 +8,10 @@ variable "unity_catalog_role_arn" {
   description = "ARN da Role do IAM que o Unity Catalog assume para acessar o S3"
 }
 
-variable "bucket_raw_id"    { type = string }
+variable "bucket_raw_id" { type = string }
 variable "bucket_bronze_id" { type = string }
 variable "bucket_silver_id" { type = string }
-variable "bucket_gold_id"   { type = string }
+variable "bucket_gold_id" { type = string }
 
 variable "admin_group_name" {
   type        = string

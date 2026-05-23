@@ -1,22 +1,22 @@
 locals {
-  iam_role_name = "databricks-unity-catalog-metastore-access"
-  iam_role_arn  = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${local.iam_role_name}"
+  iam_role_name  = "databricks-unity-catalog-metastore-access"
+  iam_role_arn   = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${local.iam_role_name}"
   metastore_name = var.metastore_name == null ? "metastore_uc_${replace(var.aws_region, "-", "_")}" : var.metastore_name
 }
 
 variable "tags" {
-    description = "A map of tags to apply to the resources created by this module."
-    type        = map(string)
+  description = "A map of tags to apply to the resources created by this module."
+  type        = map(string)
 }
 
 variable "bucket_name" {
-    description = "The name of the S3 bucket to be used for the Databricks metastore."
-    type        = string
+  description = "The name of the S3 bucket to be used for the Databricks metastore."
+  type        = string
 }
 
 variable "aws_region" {
-    description = "The AWS region where the resources will be created."
-    type        = string
+  description = "The AWS region where the resources will be created."
+  type        = string
 }
 
 variable "databricks_workspace_ids" {
