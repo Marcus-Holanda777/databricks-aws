@@ -3,6 +3,8 @@
 
 Uma infraestrutura declarativa em Terraform para provisionar recursos AWS e Databricks usados pelo projeto. O repositório está organizado com configurações por ambiente em `terraform/env/` e módulos reutilizáveis em `terraform/modules/`.
 
+![Diagrama de arquitetura](./docs/infra-diagram.svg)
+
 ## Descrição
 
 Este projeto provisiona a infraestrutura necessária para executar workloads Databricks na AWS, incluindo:

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720">
+  <style>
+    .box { fill: #f8fafc; stroke: #1f2937; stroke-width:1.5px; rx:8; }
+    .title { font: bold 16px sans-serif; fill:#111827 }
+    .label { font: 13px sans-serif; fill:#111827 }
+    .cloud { fill:#eef2ff; stroke:#4f46e5; stroke-width:1.2px; rx:12 }
+    .arrow { stroke:#374151; stroke-width:2; marker-end: url(#arrowhead); }
+  </style>
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#374151" />
+    </marker>
+  </defs>
+
+  <!-- VPC container -->
+  <rect x="40" y="40" width="1120" height="620" class="box" />
+  <text x="60" y="66" class="title">VPC (rede)</text>
+
+  <!-- Public Subnets -->
+  <rect x="80" y="100" width="480" height="160" rx="6" fill="#f1f5f9" stroke="#94a3b8" />
+  <text x="100" y="124" class="label">Public Subnets</text>
+  <text x="100" y="148" class="label">- Load Balancers / Gateway</text>
+
+  <!-- Private Subnets -->
+  <rect x="80" y="280" width="480" height="240" rx="6" fill="#ffffff" stroke="#94a3b8" />
+  <text x="100" y="304" class="label">Private Subnets</text>
+  <text x="100" y="328" class="label">- Databricks Clusters (Spark)</text>
+
+  <!-- NAT Gateway -->
+  <rect x="580" y="220" width="220" height="120" class="cloud" />
+  <text x="600" y="248" class="label">NAT Gateway</text>
+
+  <!-- S3 Bucket -->
+  <rect x="840" y="120" width="280" height="120" class="box" />
+  <text x="860" y="148" class="label">S3 Buckets</text>
+  <text x="860" y="172" class="label">- metastore / staging / logs</text>
+
+  <!-- DynamoDB for locking -->
+  <rect x="840" y="260" width="280" height="80" class="box" />
+  <text x="860" y="296" class="label">DynamoDB</text>
+  <text x="860" y="318" class="label">- state locking (optional)</text>
+
+  <!-- IAM Role -->
+  <rect x="580" y="360" width="220" height="80" class="box" />
+  <text x="600" y="392" class="label">IAM Role (cross-account)</text>
+
+  <!-- Databricks Workspace -->
+  <rect x="840" y="380" width="280" height="160" class="cloud" />
+  <text x="860" y="408" class="label">Databricks Workspace</text>
+  <text x="860" y="432" class="label">- Workspaces & Clusters</text>
+  <text x="860" y="456" class="label">- Unity Catalog / Metastore (provisionado no workspace)</text>
+
+  <!-- Arrows -->
+  <line x1="660" y1="260" x2="840" y2="170" class="arrow" />
+  <text x="720" y="200" class="label">S3 access (iam role)</text>
+
+  <line x1="700" y1="400" x2="840" y2="420" class="arrow" />
+  <text x="730" y="406" class="label">Provision / API</text>
+
+  <line x1="520" y1="220" x2="580" y2="260" class="arrow" />
+  <text x="460" y="240" class="label">NAT e Rotas</text>
+
+  <line x1="920" y1="300" x2="920" y2="380" class="arrow" />
+  <text x="740" y="330" class="label">State backend / locking</text>
+
+  <!-- Legend -->
+  <rect x="60" y="560" width="1100" height="80" rx="6" fill="#ffffff" stroke="#e2e8f0" />
+  <text x="80" y="590" class="label">Legenda: VPC, subnets, NAT Gateway, S3 (metastore), DynamoDB (locking), IAM Role, Databricks Workspace</text>
+
+</svg>
