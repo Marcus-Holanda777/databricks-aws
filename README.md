@@ -77,10 +77,20 @@ aws configure
 ```
 
 2) State remoto (opcional, recomendado para times)
-- Crie um bucket S3 e uma tabela DynamoDB para locking se for usar backend remoto. (Guia: https://learn.hashicorp.com/tutorials/terraform/s3-backend)
+- Crie um bucket S3 e uma tabela DynamoDB para locking se for usar backend remoto. (Guia: https://developer.hashicorp.com/terraform/language/backend/s3)
 
-3) Databricks: credenciais básicas
-- Obtenha o Account ID e gere as credenciais necessárias (client_id/client_secret ou PAT). Não crie workspaces manualmente se o Terraform for responsável pelo provisionamento.
+3) Databricks: Fluxo de Assinatura e Estratégia de Laboratório
+
+Como este é um ambiente de laboratório focado nos estudos, é preciso uma abordagem de ativação oficial integrada à AWS, mas com o cuidado de manter o controle total do ciclo de vida dos recursos via código.
+
+* **Caminho de Configuração:** A ativação da conta é realizada via **AWS Marketplace**, assinando o produto oficial do Databricks. Esse caminho é o padrão de mercado para unificar o faturamento (*billing*) diretamente na conta da AWS.
+
+* **Ações de Preparação:** O fluxo de aquisição é iniciado no Marketplace para criar o vínculo entre as contas. Nessa etapa, coletam-se o **Account ID** do Databricks e as credenciais de autenticação necessárias para o provedor do Terraform (`client_id`/`client_secret` ou *Personal Access Token* - PAT).
+
+> 🔬 **Por que o fluxo é interrompido manualmente?**
+> O assistente automático do Marketplace é **interrompido intencionalmente** antes da criação automática dos Workspaces ou do Metastore padrão. Essa decisão de arquitetura é tomada porque o objetivo do laboratório é aprender a provisionar **toda a infraestrutura de forma 100% declarativa**. Interromper esse fluxo automatizado obriga ao gerenciamento e entendimento do nascimento de cada recurso (redes, segurança e storage) através dos próprios scripts do Terraform.
+
+* **Nota sobre Créditos de Estudo:** Para fins de aprendizado, vale destacar que algumas ofertas do Databricks no AWS Marketplace oferecem créditos promocionais de avaliação (*Free Trial*). É uma excelente oportunidade encontrada para testar recursos avançados sem custo inicial (recomenda-se sempre verificar os termos vigentes na página do produto).
 
 4) Preencher variáveis locais
 - Copie o exemplo e edite localmente (NÃO versionar):
@@ -96,14 +106,12 @@ Pronto — agora siga a seção "Como executar" para init/plan/apply.
 
 - AWS (início): https://aws.amazon.com/pt/
 - AWS CLI: https://docs.aws.amazon.com/pt_br/cli/latest/userguide/getting-started-install.html
-- Terraform S3 backend (S3 + DynamoDB): https://learn.hashicorp.com/tutorials/terraform/s3-backend
-- Databricks Account Console / APIs: https://docs.databricks.com/administration-guide/account-console/index.html
-- Databricks Unity Catalog (criar metastore): https://docs.databricks.com/aws/pt/data-governance/unity-catalog/create-metastore
-- Databricks API auth (PATs / tokens): https://docs.databricks.com/dev-tools/api/latest/authentication.html#generate-a-personal-access-token
+- Terraform S3 backend (S3): https://developer.hashicorp.com/terraform/language/backend/s3
+- Databricks Account Console / APIs: https://docs.databricks.com/aws/en/admin/account-settings/
+- Databricks Unity Catalog (criar metastore): https://docs.databricks.com/aws/en/data-governance/unity-catalog/create-metastore
+- Databricks API auth (PATs / tokens): https://docs.databricks.com/aws/en/dev-tools/auth/
 
 ## Contribuição
-
-Contribuições são bem-vindas. Para pequenas correções de documentação, abra um PR com a alteração. Para mudanças de infraestrutura, abra uma issue descrevendo o objetivo e o impacto esperado.
 
 As variáveis abaixo foram extraídas dos arquivos `variables.tf` presentes no ambiente `dev` e nos módulos. Elas representam as entradas principais que você verá ao usar este projeto.
 
@@ -111,10 +119,10 @@ As variáveis abaixo foram extraídas dos arquivos `variables.tf` presentes no a
 |---|---:|---|
 | `aws_region` | string | Região AWS onde os recursos serão criados |
 | `profile_name` | string | Perfil AWS a ser usado (opcional, se aplicar) |
-| `bucket_name` | string | Nome do bucket S3 a ser criado/usuado |
+| `bucket_name` | string | Nome do bucket S3 a ser criado/usado |
 | `databricks_account_id` | string | ID da conta Databricks (Account ID) |
 | `client_id` | string | Client ID para API/integração com Databricks |
-| `client_secret` | string | Client secret para Databricks (não commitar) |
+| `client_secret` | string | client_secret para Databricks (não versionar)
 | `email_admin` | string | E-mail do usuário administrador do Databricks |
 | `group_members` | map(list(string)) | Mapeamento de grupos → lista de e-mails dos membros |
 | `cidr_block` | string | CIDR da VPC |
@@ -133,52 +141,38 @@ Observação: nem todas as variáveis são obrigatórias para cada módulo; veri
 
 ## Como executar (PowerShell)
 
-Abra o PowerShell a partir do diretório do repositório (ex: `c:\pre_projetos\start_job\databricks`) e siga os passos abaixo. Estes comandos assumem que você trabalha no ambiente `dev` em `terraform/env/dev`.
+Abra o PowerShell a partir do diretório do repositório (ex: `c:\path\sub_path\databricks`) e siga os passos abaixo. Estes comandos assumem que você trabalha no ambiente `dev` em `terraform/env/dev`.
 
 ```powershell
-# Alternativa 1 (recomendado se você quer permanecer em outro diretório):
-# use a flag -chdir para apontar o diretório do ambiente
-
 # Inicializar Terraform
-terraform -chdir="terraform/env/dev" init
+terraform -chdir="terraform/env/dev" init --upgrade
 
 # Validar sintaxe e referências
 terraform -chdir="terraform/env/dev" validate
 
 # (Opcional) Formatar código
-terraform -chdir="terraform/env/dev" fmt -recursive
+terraform -chdir="terraform" fmt -recursive
 
 # Gerar um plano e salvar em arquivo
-terraform -chdir="terraform/env/dev" plan -out=main.tfplan -var-file=terraform.tfvars
+terraform -chdir="terraform/env/dev" plan -var-file="terraform.tfvars" -out="main.tfplan"
 
 # Aplicar o plano salvo (recomendado) ou aplicar direto
-terraform -chdir="terraform/env/dev" apply "main.tfplan"
-# ou aplicar direto
-terraform -chdir="terraform/env/dev" apply -var-file=terraform.tfvars -auto-approve
-
-# Alternativa 2: mudar o diretório (PowerShell)
-# Set-Location -Path .\terraform\env\dev
+terraform -chdir="terraform/env/dev" apply -auto-approve "main.tfplan"
 ```
-
-Dicas:
-
-- Use `-var 'key=value'` para sobrescrever variáveis em linha de comando quando necessário.
-- Para trabalhar com perfis AWS diferentes, exporte `AWS_PROFILE` ou use `profile_name` conforme configurado.
 
 ## Limpeza (remover infraestrutura)
 
 Para destruir os recursos criados por este ambiente (tenha cuidado — essa ação remove recursos):
 
 ```powershell
-Set-Location -Path .\\terraform\\env\\dev
-terraform destroy -var-file=terraform.tfvars -auto-approve
+terraform -chdir="terraform/env/dev" destroy -var-file="terraform.tfvars"
 ```
 
 Se você utilizou um backend remoto para o estado, verifique e remova quaisquer artefatos remanescentes (por exemplo, objetos S3 ou entradas DynamoDB para lock) conforme apropriado.
 
 ## Boas práticas e observações
 
-- Nunca commit credenciais (client secrets, tokens, etc.). Use variáveis de ambiente, vaults ou secrets managers.
+- Nunca versionar credenciais (client_secret, tokens, etc.). Use variáveis de ambiente, cofres/secrets managers ou um vault.
 - Considere habilitar um backend remoto (S3 + DynamoDB) para colaboração e locking do estado.
 - Mantenha o módulo `versions.tf` atualizado para fixar versões de providers e evitar quebras inesperadas.
 - Teste alterações de infraestrutura em `dev` antes de promover para `prod`.
@@ -187,7 +181,3 @@ Se você utilizou um backend remoto para o estado, verifique e remova quaisquer 
 
 - `terraform/env/dev/` — configurações e estado local do ambiente de desenvolvimento
 - `terraform/modules/` — módulos reutilizáveis (VPC, S3, IAM, Databricks, etc.)
-
-## Contato
-
-Para dúvidas, abra uma issue ou entre em contato com a equipe de infraestrutura responsável pelo projeto.
