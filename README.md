@@ -34,12 +34,12 @@ Os módulos ficam em `terraform/modules/` e um ambiente de exemplo (`dev`) está
 
 - Unity Catalog / Metastore: criação/configuração do metastore e ligação com buckets S3 e roles.
 	- Por que: fornece governança de dados centralizada, catálogo unificado de tabelas e controle de acesso; é essencial para organização de dados e compliance.
-    
-    > [!WARNING] 
-	> **ATENÇÃO:** o metastore (Unity Catalog) pode ser provisionado automaticamente pelo Databricks ou gerenciado via APIs específicas. Evite criar o metastore manualmente no Console se o Terraform ou módulos deste repositório forem responsáveis por provisioná-lo — criar manualmente pode causar conflitos. Verifique a configuração do módulo `databricks_metastore` antes de criar recursos manualmente.
 
 - Databricks Users & Groups: criação e associação de usuários e grupos (por e-mail).
 	- Por que: permite gestão centralizada de identidades e permissões dentro do workspace, simplificando onboarding e auditoria.
+
+> [!WARNING] 
+> O metastore (Unity Catalog) pode ser provisionado automaticamente pelo Databricks ou gerenciado via APIs específicas. Evite criar o metastore manualmente no Console se o Terraform ou módulos deste repositório forem responsáveis por provisioná-lo — criar manualmente pode causar conflitos. Verifique a configuração do módulo `databricks_metastore` antes de criar recursos manualmente.
 
 ## Pré-requisitos
 
