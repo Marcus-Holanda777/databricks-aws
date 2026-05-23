@@ -1,9 +1,8 @@
-
 # Infraestrutura AWS com Databricks via Terraform
 
-Uma infraestrutura declarativa em Terraform para provisionar recursos AWS e Databricks usados pelo projeto. O repositório está organizado com configurações por ambiente em `terraform/env/` e módulos reutilizáveis em `terraform/modules/`.
+Uma infraestrutura declarativa, construída com Terraform, para provisionar os recursos AWS e Databricks necessários ao projeto. O repositório está organizado por ambientes em `terraform/env/` (ex.: `dev`, `prod`) e por módulos reutilizáveis em `terraform/modules/` (cada módulo encapsula um recurso ou conjunto relacionado).
 
-![Diagrama da Infraestrutura AWS com Databricks](docs/infra_databricks.png)
+![Diagrama da infraestrutura (PNG fallback)](docs/infra_databricks.png)
 
 ## Descrição
 
@@ -18,15 +17,28 @@ Os módulos ficam em `terraform/modules/` e um ambiente de exemplo (`dev`) está
 
 ## Arquitetura (recursos principais)
 
-- AWS VPC: VPC com subnets públicas e privadas, roteamento, NAT (opção multi-AZ)
-- Security Groups: regras de rede para clusters e serviços
-- IAM: roles e políticas para permitir que o Databricks acesse buckets S3 e gerencie recursos (cross-account role)
-- S3: buckets para metastore Unity Catalog, staging e outros artefatos
-- Databricks Workspace: provisionamento/integração com recursos AWS
-- Unity Catalog / Metastore: criação/configuração de metastore e link com S3 e roles
-  
-	**ATENÇÃO:** O metastore (Unity Catalog) pode ser criado automaticamente pelo Databricks ou gerenciado via APIs específicas. Evite criar manualmente o metastore no Console se o Terraform ou módulos deste repositório forem responsáveis por provisioná-lo — criar manualmente pode causar conflitos. Verifique a configuração do módulo `databricks_metastore` antes de criar recursos manualmente.
-- Databricks Users & Groups: criação e associação de usuários e grupos (por e-mail)
+- AWS VPC: VPC com subnets públicas e privadas, roteamento e NAT (opção multi-AZ).
+	- Por que: isola a rede do projeto, separa tráfego público e privado e garante que clusters e serviços tenham conectividade controlada e alta disponibilidade.
+
+- Security Groups: regras de firewall a nível de instância/serviço.
+	- Por que: controlam acesso de rede entre clusters, serviços e endpoints, reduzindo a superfície de ataque e permitindo políticas de segurança mínimas necessárias.
+
+- IAM: roles e políticas para permitir que o Databricks acesse buckets S3 e gerencie recursos (inclui roles cross-account quando necessário).
+	- Por que: concedem permissões granulares para que o Databricks e o código de provisionamento realizem ações necessárias (acesso a S3, passar roles, criar recursos) sem usar credenciais amplas.
+
+- S3: buckets para metastore Unity Catalog, staging, logs e artefatos.
+	- Por que: armazenamento durável e escalável para dados do metastore, arquivos de staging de jobs, artefatos de implantação e logs de auditoria; também usado como backend remoto do Terraform quando configurado.
+
+- Databricks Workspace: provisionamento/integração do workspace com recursos AWS.
+	- Por que: ambiente onde usuários e clusters executam workloads; a integração com AWS (VPC, roles, S3) é necessária para operação segura e eficiente.
+
+- Unity Catalog / Metastore: criação/configuração do metastore e ligação com buckets S3 e roles.
+	- Por que: fornece governança de dados centralizada, catálogo unificado de tabelas e controle de acesso; é essencial para organização de dados e compliance.
+
+	**ATENÇÃO:** o metastore (Unity Catalog) pode ser provisionado automaticamente pelo Databricks ou gerenciado via APIs específicas. Evite criar o metastore manualmente no Console se o Terraform ou módulos deste repositório forem responsáveis por provisioná-lo — criar manualmente pode causar conflitos. Verifique a configuração do módulo `databricks_metastore` antes de criar recursos manualmente.
+
+- Databricks Users & Groups: criação e associação de usuários e grupos (por e-mail).
+	- Por que: permite gestão centralizada de identidades e permissões dentro do workspace, simplificando onboarding e auditoria.
 
 ## Pré-requisitos
 
@@ -36,174 +48,62 @@ Os módulos ficam em `terraform/modules/` e um ambiente de exemplo (`dev`) está
 - PowerShell (exemplos abaixo usam PowerShell no Windows)
 - Recomenda-se habilitar o bloqueio de estado remoto (S3 + DynamoDB) antes de usar em times
 
-## Guia prático — pré-configuração (didático)
+## Validar antes de aplicar
 
-Esta seção é um passo a passo pensado para ensinar alguém a preparar os pré-requisitos antes de rodar o Terraform. Inclui links oficiais e comandos básicos. O objetivo é habilitar as contas e ferramentas — NÃO provisionar recursos que o Terraform deverá criar.
+Antes de executar `terraform apply` confirme rapidamente:
 
-1. Criar uma conta AWS
-	- Acesse a página da AWS e crie uma conta (se ainda não tiver): https://aws.amazon.com/pt/
-	- Documentação / guia de início: https://aws.amazon.com/pt/getting-started/
-	- Recomendações: configure MFA no usuário root e crie um usuário IAM administrativo separado para uso diário.
+- Credenciais AWS: `aws sts get-caller-identity` deve retornar seu principal esperado.
+- Backend/state: se usar backend remoto, verifique que o bucket S3 existe e a tabela DynamoDB para lock está criada.
+- Permissões IAM: role/usuário que executa o Terraform deve ter permissões para criar os recursos listados (IAM, EC2, S3, DynamoDB).
+- Variáveis: `terraform.tfvars` está preenchido e não contém secrets versionados.
 
-2. Configurar o AWS CLI
-	- Instale o AWS CLI (documentação): https://docs.aws.amazon.com/pt_br/cli/latest/userguide/getting-started-install.html
-	- Configure o CLI localmente com credenciais de um usuário IAM com permissões adequadas:
+Comandos úteis:
+
+```powershell
+aws sts get-caller-identity
+terraform -chdir="terraform/env/dev" init
+terraform -chdir="terraform/env/dev" plan -var-file=terraform.tfvars
+```
+
+## Guia prático — pré-configuração (resumido)
+
+Siga estes passos mínimos antes de rodar o Terraform (objetivo: preparar credenciais e state). Se já tem tudo pronto, pule para a seção "Como executar".
+
+1) AWS: credenciais e região
+- Instale e configure o AWS CLI:
 
 ```powershell
 aws configure
-# informe AWS Access Key ID, AWS Secret Access Key, região (ex: us-east-1) e formato (json)
 ```
 
-	- Guia rápido de configuração: https://docs.aws.amazon.com/pt_br/cli/latest/userguide/cli-configure-quickstart.html
+2) State remoto (opcional, recomendado para times)
+- Crie um bucket S3 e uma tabela DynamoDB para locking se for usar backend remoto. (Guia: https://learn.hashicorp.com/tutorials/terraform/s3-backend)
 
-3. (Opcional, recomendado) Criar um bucket S3 para estado remoto
-	- Se planeja usar backend remoto (recomendado para times), crie um bucket S3 e uma tabela DynamoDB para lock.
-	- Tutorial S3 + DynamoDB backend: https://learn.hashicorp.com/tutorials/terraform/s3-backend
+3) Databricks: credenciais básicas
+- Obtenha o Account ID e gere as credenciais necessárias (client_id/client_secret ou PAT). Não crie workspaces manualmente se o Terraform for responsável pelo provisionamento.
 
-4. Habilitar conta Databricks sem criar workspaces manualmente
-	- Se ainda não tiver conta Databricks, crie acesso em: https://www.databricks.com/ (ou peça à equipe responsável).
-	- Documentação do Account Console (Account API / Account Console): https://docs.databricks.com/administration-guide/account-console/index.html
-	- Obtenha o Account ID (necessário para integrações) no Account Console — copie o Account ID e mantenha em segurança.
-	- Gere credenciais necessárias para a integração:
-	  - Para operações na API em nível de conta, você pode criar um client ID / client secret (service principal) via Account Console / API.
-	  - Para o provider do workspace (quando aplicável), gere um Personal Access Token (PAT) no próprio workspace.
-	- Importante: não crie workspaces manualmente no Console se o Terraform for responsável pelo provisionamento — apenas habilite a conta e gere as credenciais necessárias.
-	- ATENÇÃO SOBRE METASTORE: o Unity Catalog / metastore pode ser provisionado automaticamente pelo Databricks ou pelo módulo `databricks_metastore`. NÃO crie o metastore manualmente no Console se pretende que o Terraform gerencie o metastore; isso pode causar inconsistências e conflitos na configuração do Unity Catalog.
-
-	- DECISÃO DO PROJETO: optou-se por NÃO criar o metastore via Terraform. O metastore será provisionado automaticamente quando o Databricks Workspace for criado. Se já existir um metastore, importe-o ou referencie-o no Terraform em vez de criar outro.
-
-
-**Recomendação e link oficial**
-
-Se você precisar criar o metastore manualmente (por exemplo, por decisões organizacionais), siga a documentação oficial do Databricks: https://docs.databricks.com/aws/pt/data-governance/unity-catalog/create-metastore
-
-- Recomendação geral: Se este repositório / módulo `databricks_metastore` for responsável pelo metastore, deixe que o Terraform faça o provisioning para evitar conflitos.
-- Caso já exista um metastore creado manualmente ou por outro time, importe ou referencie esse metastore no Terraform em vez de criar um novo (posso ajudar com comandos de import). 
-
-	- Guia para gerar tokens e autenticação: https://docs.databricks.com/dev-tools/api/latest/authentication.html#generate-a-personal-access-token
-
-5. Preencher `terraform.tfvars`
-	- Copie o arquivo de exemplo e edite localmente (não versionar):
+4) Preencher variáveis locais
+- Copie o exemplo e edite localmente (NÃO versionar):
 
 ```powershell
 Copy-Item .\terraform\env\dev\terraform.tfvars.example .\terraform\env\dev\terraform.tfvars
-# edite .\terraform\env\dev\terraform.tfvars e substitua placeholders por valores reais
+# editar .\terraform\env\dev\terraform.tfvars
 ```
 
-6. Executar os comandos do Terraform (veja seção "Como executar")
+Pronto — agora siga a seção "Como executar" para init/plan/apply.
 
-Se precisar de ajuda para criar políticas IAM mínimas (privilégios necessários) para o Terraform executar as ações, a seguir há um exemplo de policy JSON mínima. Ajuste os ARNs, regiões e contas conforme seu ambiente e restrinja ao máximo possível antes de aplicar em produção.
+## Links de referência
 
-### Exemplo de IAM Policy mínima (JSON)
+- AWS (início): https://aws.amazon.com/pt/
+- AWS CLI: https://docs.aws.amazon.com/pt_br/cli/latest/userguide/getting-started-install.html
+- Terraform S3 backend (S3 + DynamoDB): https://learn.hashicorp.com/tutorials/terraform/s3-backend
+- Databricks Account Console / APIs: https://docs.databricks.com/administration-guide/account-console/index.html
+- Databricks Unity Catalog (criar metastore): https://docs.databricks.com/aws/pt/data-governance/unity-catalog/create-metastore
+- Databricks API auth (PATs / tokens): https://docs.databricks.com/dev-tools/api/latest/authentication.html#generate-a-personal-access-token
 
-Observações antes de usar:
-- Substitua `REPLACE_ACCOUNT_ID`, `REPLACE_REGION`, `REPLACE_S3_BUCKET` e `REPLACE_DDB_TABLE_ARN` pelos valores do seu ambiente.
-- Preferível criar uma role específica e anexar esta policy a ela, em vez de usar credenciais de usuário root.
-- Revise e reduza permissões a recursos/ARNs específicos sempre que possível.
+## Contribuição
 
-```json
-{
-	"Version": "2012-10-17",
-	"Statement": [
-		{
-			"Sid": "S3StateBucket",
-			"Effect": "Allow",
-			"Action": [
-				"s3:CreateBucket",
-				"s3:ListBucket",
-				"s3:GetBucketLocation",
-				"s3:PutObject",
-				"s3:GetObject",
-				"s3:DeleteObject"
-			],
-			"Resource": [
-				"arn:aws:s3:::REPLACE_S3_BUCKET",
-				"arn:aws:s3:::REPLACE_S3_BUCKET/*"
-			]
-		},
-		{
-			"Sid": "DynamoDBLock",
-			"Effect": "Allow",
-			"Action": [
-				"dynamodb:GetItem",
-				"dynamodb:PutItem",
-				"dynamodb:DeleteItem",
-				"dynamodb:UpdateItem",
-				"dynamodb:Query",
-				"dynamodb:Scan"
-			],
-			"Resource": "REPLACE_DDB_TABLE_ARN"
-		},
-		{
-			"Sid": "EC2NetworkPermissions",
-			"Effect": "Allow",
-			"Action": [
-				"ec2:Describe*",
-				"ec2:CreateVpc",
-				"ec2:DeleteVpc",
-				"ec2:CreateSubnet",
-				"ec2:DeleteSubnet",
-				"ec2:CreateInternetGateway",
-				"ec2:AttachInternetGateway",
-				"ec2:CreateRouteTable",
-				"ec2:CreateRoute",
-				"ec2:AssociateRouteTable",
-				"ec2:AllocateAddress",
-				"ec2:CreateNatGateway",
-				"ec2:CreateSecurityGroup",
-				"ec2:DeleteSecurityGroup",
-				"ec2:AuthorizeSecurityGroupIngress",
-				"ec2:AuthorizeSecurityGroupEgress",
-				"ec2:CreateTags"
-			],
-			"Resource": "*"
-		},
-		{
-			"Sid": "IAMPermissions",
-			"Effect": "Allow",
-			"Action": [
-				"iam:CreateRole",
-				"iam:DeleteRole",
-				"iam:GetRole",
-				"iam:PassRole",
-				"iam:AttachRolePolicy",
-				"iam:PutRolePolicy",
-				"iam:CreatePolicy",
-				"iam:DeletePolicy",
-				"iam:GetRolePolicy"
-			],
-			"Resource": "arn:aws:iam::REPLACE_ACCOUNT_ID:role/*"
-		},
-		{
-			"Sid": "Logs",
-			"Effect": "Allow",
-			"Action": [
-				"logs:CreateLogGroup",
-				"logs:CreateLogStream",
-				"logs:PutLogEvents"
-			],
-			"Resource": "*"
-		}
-	]
-}
-```
-
-Como aplicar essa policy
-
-1. Salve o JSON acima em um arquivo local (ex: `terraform-iam-policy.json`).
-2. Crie uma role no AWS IAM para uso pelo Terraform (ou anexe a um usuário/role existente):
-
-```powershell
-# Exemplo via AWS CLI (substitua NOME_DA_ROLE e o arquivo de trust policy se necessário)
-aws iam create-role --role-name NOME_DA_ROLE --assume-role-policy-document file://trust-policy.json
-aws iam put-role-policy --role-name NOME_DA_ROLE --policy-name TerraformMinimalPolicy --policy-document file://terraform-iam-policy.json
-```
-
-3. Se usar um usuário/role para executar o Terraform localmente, configure as credenciais AWS para esse principal.
-
-Se quiser, gero também a `trust-policy.json` mínima e uma versão da policy com ARNs já preenchidos com valores do seu ambiente.
-
-## Variáveis principais
+Contribuições são bem-vindas. Para pequenas correções de documentação, abra um PR com a alteração. Para mudanças de infraestrutura, abra uma issue descrevendo o objetivo e o impacto esperado.
 
 As variáveis abaixo foram extraídas dos arquivos `variables.tf` presentes no ambiente `dev` e nos módulos. Elas representam as entradas principais que você verá ao usar este projeto.
 
