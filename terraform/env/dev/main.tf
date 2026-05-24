@@ -12,6 +12,20 @@ module "network_dev" {
   tags                  = var.tags
 }
 
+module "db_rds" {
+  source = "../../modules/aws_rds"
+
+  environment                = "dev"
+  aws_region                 = var.aws_region
+  db_name                    = var.db_name
+  db_username                = var.db_username
+  db_password                = var.db_password
+  postgres_subnets_name      = module.network_dev.postgres_subnets_name
+  postgres_security_group_id = module.network_dev.postgres_security_group_id
+  multi_az_nat               = false
+  tags                       = var.tags
+}
+
 module "s3_bronze" {
   source = "../../modules/aws_s3"
 
@@ -104,17 +118,17 @@ module "databricks_data_gov" {
   bucket_gold_id   = module.s3_gold.bucket_id
   bucket_raw_id    = module.s3_raw.bucket_id
 
-  admin_group_name = module.databricks_users.admin_group_name
-  user_group_name  = module.databricks_users.user_group_name
+  admin_group_name     = module.databricks_users.admin_group_name
+  user_group_name      = module.databricks_users.user_group_name
+  db_username          = var.db_username
+  db_password          = var.db_password
+  db_instance_endpoint = module.db_rds.db_instance_endpoint
 
   providers = {
     databricks = databricks.workspace
   }
 
-  depends_on = [
-    time_sleep.wait_30_seconds,
-    module.databricks_users
-  ]
+  depends_on = [time_sleep.wait_30_seconds]
 }
 
 output "vpc_id" {
@@ -139,4 +153,8 @@ output "databricks_workspace" {
 
 output "databricks_workspace_id" {
   value = module.databricks_workspace.workspace_id
+}
+
+output "endpoint_postgres" {
+  value = module.db_rds.db_instance_endpoint
 }

@@ -22,3 +22,18 @@ variable "user_group_name" {
   type        = string
   description = "Nome do grupo USER vindo do modulo de usuarios"
 }
+
+variable "db_username" {
+  type        = string
+  description = "Nome de usuário do banco de dados"
+}
+
+variable "db_password" {
+  type        = string
+  description = "Senha do banco de dados"
+}
+
+variable "db_instance_endpoint" {
+  type        = string
+  description = "Endpoint da instância do RDS"
+}

@@ -192,7 +192,7 @@ resource "aws_vpc_endpoint" "s3_endpoint" {
 }
 
 resource "aws_security_group" "databricks_sg" {
-  name        = "databricks-sg-${var.environment}"
+  name        = "mvsh-databricks-sg-${var.environment}"
   vpc_id      = aws_vpc.databricks_vpc.id
   description = "Security Group interno para comunicacao entre clusters Spark"
 
@@ -202,14 +202,6 @@ resource "aws_security_group" "databricks_sg" {
     to_port     = 0
     protocol    = "-1"
     self        = true
-  }
-
-  ingress {
-    description = "Allow internal HTTPS to VPC Endpoints"
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = [var.cidr_block]
   }
 
   egress {
@@ -222,7 +214,38 @@ resource "aws_security_group" "databricks_sg" {
 
   tags = merge(
     {
-      Name        = "mvsh-databricks-${var.environment}-sg",
+      Name        = "mvsh-databricks-sg-${var.environment}",
+      Environment = var.environment,
+      Component   = "Network-Core",
+    },
+    var.tags,
+  )
+}
+
+resource "aws_security_group" "vpc_endpoints_sg" {
+  name        = "mvsh-databricks-endpoint-sg-${var.environment}"
+  vpc_id      = aws_vpc.databricks_vpc.id
+  description = "Security Group exclusive for Interface VPC Endpoints"
+
+  ingress {
+    description = "Allow HTTPS from any internal VPC resource"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = [var.cidr_block]
+  }
+
+  egress {
+    description = "Block billing traffic or unnecessary egress"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = merge(
+    {
+      Name        = "mvsh-databricks-endpoint-sg-${var.environment}",
       Environment = var.environment,
       Component   = "Network-Core",
     },
@@ -242,7 +265,7 @@ resource "aws_vpc_endpoint" "kinesis_endpoint" {
   ]
 
   security_group_ids = [
-    aws_security_group.databricks_sg.id
+    aws_security_group.vpc_endpoints_sg.id
   ]
 
   tags = merge(
@@ -267,12 +290,62 @@ resource "aws_vpc_endpoint" "sts_endpoint" {
   ]
 
   security_group_ids = [
-    aws_security_group.databricks_sg.id
+    aws_security_group.vpc_endpoints_sg.id
   ]
 
   tags = merge(
     {
       Name        = "mvsh-databricks-${var.environment}-sts-endpoint",
+      Environment = var.environment,
+      Component   = "Network-Core",
+    },
+    var.tags,
+  )
+}
+
+# Configuracao de redes para o RDS postgres
+resource "aws_db_subnet_group" "postgres_subnets" {
+  name        = "mvsh-databricks-${var.environment}-pg-subnet-group"
+  description = "Sharing Databricks private subnets with Postgres"
+
+  subnet_ids = [
+    aws_subnet.private_az1.id,
+    aws_subnet.private_az2.id
+  ]
+
+  tags = merge(
+    {
+      Name        = "mvsh-databricks-${var.environment}-pg-subnet-group",
+      Environment = var.environment,
+      Component   = "Network-Core",
+    },
+    var.tags,
+  )
+}
+
+resource "aws_security_group" "postgres_sg" {
+  name        = "mvsh-postgres-sg-${var.environment}"
+  vpc_id      = aws_vpc.databricks_vpc.id
+  description = "Postgres Security Group - Allows strict access from Databricks"
+
+  ingress {
+    description     = "Allow inbound connection from Databricks Spark cluster"
+    from_port       = 5432
+    to_port         = 5432
+    protocol        = "tcp"
+    security_groups = [aws_security_group.databricks_sg.id]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = merge(
+    {
+      Name        = "mvsh-postgres-sg-${var.environment}",
       Environment = var.environment,
       Component   = "Network-Core",
     },

@@ -215,3 +215,30 @@ resource "databricks_permissions" "warehouse_user_grant" {
     permission_level = "CAN_USE"
   }
 }
+
+# CONEXOES COM O BANCO DE DADOS
+resource "databricks_connection" "postgres_federation" {
+  name            = "postgres_connection"
+  connection_type = "POSTGRESQL"
+
+  options = {
+    host     = element(split(":", var.db_instance_endpoint), 0)
+    port     = "5432"
+    user     = var.db_username
+    password = var.db_password
+  }
+
+  properties = {
+    purpose = "testing"
+  }
+
+}
+
+resource "databricks_grants" "postgres_connection_access" {
+  foreign_connection = databricks_connection.postgres_federation.name
+
+  grant {
+    principal  = var.admin_group_name
+    privileges = ["ALL_PRIVILEGES", "CREATE_FOREIGN_CATALOG"]
+  }
+}
