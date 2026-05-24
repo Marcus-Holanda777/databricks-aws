@@ -197,7 +197,7 @@ resource "aws_security_group" "databricks_sg" {
   description = "Security Group interno para comunicacao entre clusters Spark"
 
   ingress {
-    description = "Permitir tráfego interno entre instâncias da mesma security group"
+    description = "Allow internal traffic between instances of the same security group"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
@@ -205,7 +205,7 @@ resource "aws_security_group" "databricks_sg" {
   }
 
   ingress {
-    description = "Permitir HTTPS interno para os VPC Endpoints"
+    description = "Allow internal HTTPS to VPC Endpoints"
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
@@ -213,7 +213,7 @@ resource "aws_security_group" "databricks_sg" {
   }
 
   egress {
-    description = "Permitir tráfego de saída para todos os endereços"
+    description = "Allow all outbound traffic"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
