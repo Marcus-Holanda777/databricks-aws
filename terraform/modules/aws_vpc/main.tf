@@ -198,10 +198,10 @@ resource "aws_security_group" "databricks_sg" {
 
   ingress {
     description = "Permitir tráfego interno entre instâncias da mesma security group"
-    from_port = 0
-    to_port   = 0
-    protocol  = "-1"
-    self      = true
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    self        = true
   }
 
   ingress {
