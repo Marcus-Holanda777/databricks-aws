@@ -197,13 +197,23 @@ resource "aws_security_group" "databricks_sg" {
   description = "Security Group interno para comunicacao entre clusters Spark"
 
   ingress {
+    description = "Permitir tráfego interno entre instâncias da mesma security group"
     from_port = 0
     to_port   = 0
     protocol  = "-1"
     self      = true
   }
 
+  ingress {
+    description = "Permitir HTTPS interno para os VPC Endpoints"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = [var.cidr_block]
+  }
+
   egress {
+    description = "Permitir tráfego de saída para todos os endereços"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
@@ -213,6 +223,56 @@ resource "aws_security_group" "databricks_sg" {
   tags = merge(
     {
       Name        = "mvsh-databricks-${var.environment}-sg",
+      Environment = var.environment,
+      Component   = "Network-Core",
+    },
+    var.tags,
+  )
+}
+
+resource "aws_vpc_endpoint" "kinesis_endpoint" {
+  vpc_id              = aws_vpc.databricks_vpc.id
+  service_name        = "com.amazonaws.${var.aws_region}.kinesis-streams"
+  vpc_endpoint_type   = "Interface"
+  private_dns_enabled = true
+
+  subnet_ids = [
+    aws_subnet.private_az1.id,
+    aws_subnet.private_az2.id
+  ]
+
+  security_group_ids = [
+    aws_security_group.databricks_sg.id
+  ]
+
+  tags = merge(
+    {
+      Name        = "mvsh-databricks-${var.environment}-kinesis-endpoint",
+      Environment = var.environment,
+      Component   = "Network-Core",
+    },
+    var.tags,
+  )
+}
+
+resource "aws_vpc_endpoint" "sts_endpoint" {
+  vpc_id              = aws_vpc.databricks_vpc.id
+  service_name        = "com.amazonaws.${var.aws_region}.sts"
+  vpc_endpoint_type   = "Interface"
+  private_dns_enabled = true
+
+  subnet_ids = [
+    aws_subnet.private_az1.id,
+    aws_subnet.private_az2.id
+  ]
+
+  security_group_ids = [
+    aws_security_group.databricks_sg.id
+  ]
+
+  tags = merge(
+    {
+      Name        = "mvsh-databricks-${var.environment}-sts-endpoint",
       Environment = var.environment,
       Component   = "Network-Core",
     },
