@@ -22,6 +22,8 @@ module "db_rds" {
   db_password                = var.db_password
   postgres_subnets_name      = module.network_dev.db_subnet_group_name
   postgres_security_group_id = module.network_dev.security_group_postgres_id
+  vpc_id                     = module.network_dev.vpc_id
+  private_subnet_ids         = module.network_dev.private_subnet_ids
   multi_az_nat               = false
   tags                       = var.tags
 }
@@ -90,6 +92,19 @@ module "databricks_workspace" {
   depends_on = [module.network_dev, module.iam]
 }
 
+module "databricks_ncc_db" {
+  source                    = "../../modules/databricks_ncc_db"
+  environment               = "dev"
+  databricks_account_id     = var.databricks_account_id
+  databricks_workspace_id   = module.databricks_workspace.workspace_id
+  aws_region                = var.aws_region
+  vpc_endpoint_service_name = module.db_rds.vpc_endpoint_service_name
+
+  providers = {
+    databricks = databricks.mws
+  }
+}
+
 module "databricks_users" {
   source        = "../../modules/databricks_users"
   environment   = "dev"
@@ -120,6 +135,7 @@ module "databricks_data_gov" {
 
   admin_group_name     = module.databricks_users.admin_group_name
   user_group_name      = module.databricks_users.user_group_name
+  db_name              = var.db_name
   db_username          = var.db_username
   db_password          = var.db_password
   db_instance_endpoint = module.db_rds.db_instance_endpoint

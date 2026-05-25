@@ -28,6 +28,11 @@ variable "db_username" {
   description = "Nome de usuário do banco de dados"
 }
 
+variable "db_name" {
+  type        = string
+  description = "Nome do banco de dados"
+}
+
 variable "db_password" {
   type        = string
   description = "Senha do banco de dados"

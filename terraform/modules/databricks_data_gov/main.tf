@@ -239,6 +239,28 @@ resource "databricks_grants" "postgres_connection_access" {
 
   grant {
     principal  = var.admin_group_name
-    privileges = ["ALL_PRIVILEGES", "CREATE_FOREIGN_CATALOG", "USE_CONNECTION"]
+    privileges = ["ALL_PRIVILEGES"]
+  }
+}
+
+resource "databricks_catalog" "postgres_catalog" {
+  name            = "federation_postgres"
+  connection_name = databricks_connection.postgres_federation.name
+  comment         = "Catalogo espelhado do Postgres de testes via Lakehouse Federation"
+
+  options = {
+    database = var.db_name
+  }
+
+  force_destroy = var.environment == "dev" ? true : false
+  depends_on    = [databricks_connection.postgres_federation]
+}
+
+resource "databricks_grants" "postgres_catalog_grants" {
+  catalog = databricks_catalog.postgres_catalog.name
+
+  grant {
+    principal  = var.admin_group_name
+    privileges = ["ALL_PRIVILEGES"]
   }
 }
