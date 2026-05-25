@@ -1,1 +1,0 @@
-data "databricks_ip_access_list" "serverless_ips" {}

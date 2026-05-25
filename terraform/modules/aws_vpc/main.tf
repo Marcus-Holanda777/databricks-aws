@@ -335,15 +335,7 @@ resource "aws_security_group" "postgres_sg" {
     protocol        = "tcp"
     security_groups = [aws_security_group.databricks_sg.id]
   }
-
-  ingress {
-    description = "Allow inbound connection from Databricks Serverless Compute"
-    from_port   = 5432
-    to_port     = 5432
-    protocol    = "tcp"
-    cidr_blocks = data.databricks_ip_access_list.serverless_ips.ip_addresses
-  }
-
+  
   egress {
     from_port   = 0
     to_port     = 0
