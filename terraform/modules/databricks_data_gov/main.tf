@@ -239,6 +239,6 @@ resource "databricks_grants" "postgres_connection_access" {
 
   grant {
     principal  = var.admin_group_name
-    privileges = ["ALL_PRIVILEGES", "CREATE_FOREIGN_CATALOG"]
+    privileges = ["ALL_PRIVILEGES", "CREATE_FOREIGN_CATALOG", "USE_CONNECTION"]
   }
 }

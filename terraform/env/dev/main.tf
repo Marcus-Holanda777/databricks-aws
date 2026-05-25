@@ -20,8 +20,8 @@ module "db_rds" {
   db_name                    = var.db_name
   db_username                = var.db_username
   db_password                = var.db_password
-  postgres_subnets_name      = module.network_dev.postgres_subnets_name
-  postgres_security_group_id = module.network_dev.postgres_security_group_id
+  postgres_subnets_name      = module.network_dev.db_subnet_group_name
+  postgres_security_group_id = module.network_dev.security_group_postgres_id
   multi_az_nat               = false
   tags                       = var.tags
 }

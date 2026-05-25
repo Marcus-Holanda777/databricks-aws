@@ -1,7 +1,7 @@
 resource "aws_db_instance" "postgres_db" {
   identifier            = "mvsh-postgres-${var.environment}"
   engine                = "postgres"
-  engine_version        = "15.4"
+  engine_version        = "15"
   instance_class        = "db.t4g.micro"
   allocated_storage     = 20
   max_allocated_storage = 20
@@ -15,7 +15,7 @@ resource "aws_db_instance" "postgres_db" {
   db_subnet_group_name   = var.postgres_subnets_name
   vpc_security_group_ids = [var.postgres_security_group_id]
 
-  publicly_accessible = false
+  publicly_accessible = true
   skip_final_snapshot = true
   multi_az            = var.multi_az_nat
 
