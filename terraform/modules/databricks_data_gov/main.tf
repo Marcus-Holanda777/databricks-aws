@@ -152,6 +152,38 @@ resource "databricks_grants" "admin_gold" {
   }
 }
 
+resource "databricks_grants" "external_raw" {
+  external_location = databricks_external_location.raw.name
+  grant {
+    principal  = var.admin_group_name
+    privileges = ["ALL_PRIVILEGES"]
+  }
+}
+
+resource "databricks_grants" "external_bronze" {
+  external_location = databricks_external_location.bronze.name
+  grant {
+    principal  = var.admin_group_name
+    privileges = ["ALL_PRIVILEGES"]
+  }
+}
+
+resource "databricks_grants" "external_silver" {
+  external_location = databricks_external_location.silver.name
+  grant {
+    principal  = var.admin_group_name
+    privileges = ["ALL_PRIVILEGES"]
+  }
+}
+
+resource "databricks_grants" "external_gold" {
+  external_location = databricks_external_location.gold.name
+  grant {
+    principal  = var.admin_group_name
+    privileges = ["ALL_PRIVILEGES"]
+  }
+}
+
 resource "databricks_cluster_policy" "user_policy" {
   name = "Politica-Restrita-Users-${var.environment}"
   definition = jsonencode({
@@ -205,7 +237,7 @@ resource "databricks_sql_endpoint" "user_warehouse" {
   auto_stop_mins   = 10
 
   warehouse_type            = "PRO"
-  enable_serverless_compute = true
+  enable_serverless_compute = false
 }
 
 resource "databricks_permissions" "warehouse_user_grant" {

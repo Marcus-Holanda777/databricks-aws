@@ -42,13 +42,3 @@ variable "aws_region" {
   type        = string
   description = "Região AWS onde os recursos serão implantados"
 }
-
-variable "private_subnet_ids" {
-  type        = list(string)
-  description = "Lista de IDs das subnets privadas para o RDS"
-}
-
-variable "vpc_id" {
-  type        = string
-  description = "ID da VPC onde o RDS será implantado"
-}

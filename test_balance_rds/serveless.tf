@@ -1,3 +1,7 @@
+/*
+  This module sets up a Network Load Balancer (NLB) to expose an RDS Serverless cluster privately within a VPC. 
+  It creates the necessary resources to allow internal access to the RDS Serverless cluster via PrivateLink.
+
 resource "aws_lb" "postgres_serverless_nlb" {
   name               = "mvsh-pg-serverless-nlb-${var.environment}"
   internal           = true
@@ -54,3 +58,4 @@ resource "aws_vpc_endpoint_service" "postgres_serverless_service" {
     var.tags,
   )
 }
+*/
