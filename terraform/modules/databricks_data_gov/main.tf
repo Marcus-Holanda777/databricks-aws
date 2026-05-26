@@ -234,7 +234,7 @@ resource "databricks_sql_endpoint" "user_warehouse" {
   cluster_size     = "2X-Small"
   min_num_clusters = 1
   max_num_clusters = 1
-  auto_stop_mins   = 10
+  auto_stop_mins   = 20
 
   warehouse_type            = "PRO"
   enable_serverless_compute = false
@@ -263,7 +263,6 @@ resource "databricks_connection" "postgres_federation" {
   properties = {
     purpose = "testing"
   }
-
 }
 
 resource "databricks_grants" "postgres_connection_access" {
@@ -290,6 +289,73 @@ resource "databricks_catalog" "postgres_catalog" {
 
 resource "databricks_grants" "postgres_catalog_grants" {
   catalog = databricks_catalog.postgres_catalog.name
+
+  grant {
+    principal  = var.admin_group_name
+    privileges = ["ALL_PRIVILEGES"]
+  }
+}
+
+# CONEXAO COM AWS GLUE CATALOG
+resource "databricks_storage_credential" "glue_creds" {
+  name = "aws-glue-credential-${var.environment}"
+  aws_iam_role {
+    role_arn = var.databricks_glue_role_arn
+  }
+
+  force_destroy = var.environment == "dev" ? true : false
+}
+
+resource "databricks_external_location" "glue_s3_data" {
+  name            = "s3_glue_data_${var.environment}"
+  url             = "s3://${var.bucket_glue_data_id}/"
+  credential_name = databricks_storage_credential.glue_creds.name
+  force_destroy   = var.environment == "dev" ? true : false
+}
+
+resource "databricks_grants" "external_glue_s3" {
+  external_location = databricks_external_location.glue_s3_data.name
+  grant {
+    principal  = var.admin_group_name
+    privileges = ["ALL_PRIVILEGES"]
+  }
+}
+
+resource "databricks_connection" "glue_federation" {
+  name            = "aws_glue_connection"
+  connection_type = "AWS_GLUE"
+
+  options = {
+    aws_region = var.aws_region
+  }
+
+  comment = "Conexao federada com o AWS Glue Catalog utilizando Role isolada de leitura"
+}
+
+resource "databricks_grants" "glue_connection_access" {
+  foreign_connection = databricks_connection.glue_federation.name
+
+  grant {
+    principal  = var.admin_group_name
+    privileges = ["ALL_PRIVILEGES"]
+  }
+}
+
+resource "databricks_catalog" "glue_catalog" {
+  name            = "federation_glue"
+  connection_name = databricks_connection.glue_federation.name
+  comment         = "Catalogo estrangeiro mapeando tabelas Hive/Iceberg do AWS Glue"
+
+  force_destroy = var.environment == "dev" ? true : false
+
+  depends_on = [
+    databricks_connection.glue_federation,
+    databricks_external_location.glue_s3_data
+  ]
+}
+
+resource "databricks_grants" "glue_catalog_grants" {
+  catalog = databricks_catalog.glue_catalog.name
 
   grant {
     principal  = var.admin_group_name

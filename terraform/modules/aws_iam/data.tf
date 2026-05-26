@@ -63,3 +63,57 @@ data "aws_iam_policy_document" "unity_catalog_trust_policy" {
     }
   }
 }
+
+data "aws_iam_policy_document" "databricks_glue_trust_policy" {
+  statement {
+    sid     = "GlueUnityCatalogAssume"
+    actions = ["sts:AssumeRole"]
+    principals {
+      type        = "AWS"
+      identifiers = ["arn:aws:iam::414351767826:root"]
+    }
+    condition {
+      test     = "StringEquals"
+      variable = "sts:ExternalId"
+      values   = [var.databricks_account_id]
+    }
+  }
+
+  statement {
+    sid     = "GlueSelfAssume"
+    actions = ["sts:AssumeRole"]
+    principals {
+      type        = "AWS"
+      identifiers = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"]
+    }
+    condition {
+      test     = "ArnLike"
+      variable = "aws:PrincipalArn"
+      values   = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/databricks-glue-role-${var.environment}"]
+    }
+  }
+}
+
+data "aws_iam_policy_document" "iceberg_s3_readonly_policy" {
+  statement {
+    sid    = "S3IcebergRead"
+    effect = "Allow"
+    actions = [
+      "s3:GetObject",
+      "s3:PutObject",
+      "s3:DeleteObject",
+      "s3:ListBucket",
+      "s3:GetBucketLocation"
+    ]
+    resources = [
+      "arn:aws:s3:::${var.lakehouse_bucket_name}",
+      "arn:aws:s3:::${var.lakehouse_bucket_name}/*"
+    ]
+  }
+
+  statement {
+    sid       = "AllowGlueSelfAssume"
+    actions   = ["sts:AssumeRole"]
+    resources = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/mvsh-databricks-glue-role-${var.environment}"]
+  }
+}

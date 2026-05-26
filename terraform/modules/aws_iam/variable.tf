@@ -22,3 +22,8 @@ variable "aws_region" {
   description = "The AWS region for the resources"
   type        = string
 }
+
+variable "lakehouse_bucket_name" {
+  description = "The name of the Lakehouse S3 bucket GLUE and Iceberg"
+  type        = string
+}

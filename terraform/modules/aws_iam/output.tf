@@ -12,3 +12,8 @@ output "storage_credential_external_id" {
   description = "ID Externo usado para validar a credencial de armazenamento de forma segura"
   value       = var.databricks_account_id
 }
+
+output "databricks_glue_role_arn" {
+  description = "ARN da Role que o Databricks usa para acessar o AWS Glue Data Catalog"
+  value       = aws_iam_role.databricks_glue_role.arn
+}

@@ -72,6 +72,8 @@ module "iam" {
   bucket_name           = var.bucket_name
   aws_region            = var.aws_region
   tags                  = var.tags
+
+  lakehouse_bucket_name = var.bucket_glue_data_id
 }
 
 module "databricks_workspace" {
@@ -125,6 +127,10 @@ module "databricks_data_gov" {
   db_username          = var.db_username
   db_password          = var.db_password
   db_instance_endpoint = module.db_rds.db_instance_endpoint
+
+  databricks_glue_role_arn = module.iam.databricks_glue_role_arn
+  bucket_glue_data_id      = var.bucket_glue_data_id
+  aws_region               = var.aws_region
 
   providers = {
     databricks = databricks.workspace

@@ -42,3 +42,18 @@ variable "db_instance_endpoint" {
   type        = string
   description = "Endpoint da instância do RDS"
 }
+
+variable "databricks_glue_role_arn" {
+  type        = string
+  description = "ARN da Role do IAM que o Databricks assume para acessar o AWS Glue"
+}
+
+variable "bucket_glue_data_id" {
+  type        = string
+  description = "ID do bucket S3 onde os dados do Glue serão armazenados"
+}
+
+variable "aws_region" {
+  type        = string
+  description = "Regiao AWS onde os recursos serão provisionados"
+}

@@ -82,3 +82,8 @@ variable "db_password" {
   description = "The password for the database user."
   type        = string
 }
+
+variable "bucket_glue_data_id" {
+  description = "The name of the S3 bucket to be used for Glue data."
+  type        = string
+}
