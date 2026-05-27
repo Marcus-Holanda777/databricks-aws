@@ -297,19 +297,19 @@ resource "databricks_grants" "postgres_catalog_grants" {
 }
 
 # CONEXAO COM AWS GLUE CATALOG
-resource "databricks_storage_credential" "glue_creds" {
-  name = "aws-glue-credential-${var.environment}"
+resource "databricks_credential" "service_glue" {
+  name = "aws-glue-credential-service-${var.environment}"
   aws_iam_role {
     role_arn = var.databricks_glue_role_arn
   }
-
-  force_destroy = var.environment == "dev" ? true : false
+  purpose = "SERVICE"
+  comment = "Conta de servico AWS-GLUE"
 }
 
 resource "databricks_external_location" "glue_s3_data" {
   name            = "s3_glue_data_${var.environment}"
   url             = "s3://${var.bucket_glue_data_id}/"
-  credential_name = databricks_storage_credential.glue_creds.name
+  credential_name = databricks_storage_credential.external_creds.name
   force_destroy   = var.environment == "dev" ? true : false
 }
 
@@ -323,10 +323,12 @@ resource "databricks_grants" "external_glue_s3" {
 
 resource "databricks_connection" "glue_federation" {
   name            = "aws_glue_connection"
-  connection_type = "AWS_GLUE"
+  connection_type = "GLUE"
 
   options = {
-    aws_region = var.aws_region
+    aws_region     = var.aws_region
+    aws_account_id = var.aws_account_id
+    credential     = databricks_credential.service_glue.name
   }
 
   comment = "Conexao federada com o AWS Glue Catalog utilizando Role isolada de leitura"
@@ -347,6 +349,10 @@ resource "databricks_catalog" "glue_catalog" {
   comment         = "Catalogo estrangeiro mapeando tabelas Hive/Iceberg do AWS Glue"
 
   force_destroy = var.environment == "dev" ? true : false
+
+  options = {
+    authorized_paths = "s3://${var.lakehouse_bucket_name}"
+  }
 
   depends_on = [
     databricks_connection.glue_federation,

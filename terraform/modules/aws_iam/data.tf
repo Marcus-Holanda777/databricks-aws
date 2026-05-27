@@ -23,7 +23,9 @@ data "aws_iam_policy_document" "unity_catalog_s3_policy_doc" {
       "arn:aws:s3:::${var.bucket_name}-gold-${var.environment}-${var.aws_region}-${data.aws_caller_identity.current.account_id}",
       "arn:aws:s3:::${var.bucket_name}-gold-${var.environment}-${var.aws_region}-${data.aws_caller_identity.current.account_id}/*",
       "arn:aws:s3:::${var.bucket_name}-raw-${var.environment}-${var.aws_region}-${data.aws_caller_identity.current.account_id}",
-      "arn:aws:s3:::${var.bucket_name}-raw-${var.environment}-${var.aws_region}-${data.aws_caller_identity.current.account_id}/*"
+      "arn:aws:s3:::${var.bucket_name}-raw-${var.environment}-${var.aws_region}-${data.aws_caller_identity.current.account_id}/*",
+      "arn:aws:s3:::${var.lakehouse_bucket_name}",
+      "arn:aws:s3:::${var.lakehouse_bucket_name}/*"
     ]
   }
 
@@ -114,6 +116,6 @@ data "aws_iam_policy_document" "iceberg_s3_readonly_policy" {
   statement {
     sid       = "AllowGlueSelfAssume"
     actions   = ["sts:AssumeRole"]
-    resources = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/mvsh-databricks-glue-role-${var.environment}"]
+    resources = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/databricks-glue-role-${var.environment}"]
   }
 }

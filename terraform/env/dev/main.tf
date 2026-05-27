@@ -131,6 +131,8 @@ module "databricks_data_gov" {
   databricks_glue_role_arn = module.iam.databricks_glue_role_arn
   bucket_glue_data_id      = var.bucket_glue_data_id
   aws_region               = var.aws_region
+  aws_account_id           = module.iam.iam_aws_account_id
+  lakehouse_bucket_name    = var.bucket_glue_data_id
 
   providers = {
     databricks = databricks.workspace

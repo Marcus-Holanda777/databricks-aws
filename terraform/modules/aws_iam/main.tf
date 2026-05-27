@@ -4,7 +4,7 @@ resource "aws_iam_role" "cross_account_role" {
 
   tags = merge(
     {
-      Name        = "mvsh-databricks-cross-account-role-${var.environment}"
+      Name        = "databricks-cross-account-role-${var.environment}"
       Environment = var.environment
       Component   = "IAM-Lakehouse"
     },
@@ -24,7 +24,7 @@ resource "aws_iam_role" "unity_catalog_role" {
 
   tags = merge(
     {
-      Name        = "mvsh-databricks-unity-catalog-role-${var.environment}"
+      Name        = "databricks-unity-catalog-role-${var.environment}"
       Environment = var.environment
       Component   = "IAM-Lakehouse"
     },
@@ -38,7 +38,7 @@ resource "aws_iam_policy" "unity_catalog_s3_policy" {
 
   tags = merge(
     {
-      Name        = "mvsh-databricks-unity-catalog-s3-policy-${var.environment}"
+      Name        = "databricks-unity-catalog-s3-policy-${var.environment}"
       Environment = var.environment
       Component   = "IAM-Lakehouse"
     },
@@ -52,12 +52,12 @@ resource "aws_iam_role_policy_attachment" "unity_catalog_attach" {
 }
 
 resource "aws_iam_role" "databricks_glue_role" {
-  name               = "mvsh-databricks-glue-role-${var.environment}"
+  name               = "databricks-glue-role-${var.environment}"
   assume_role_policy = data.aws_iam_policy_document.databricks_glue_trust_policy.json
 
   tags = merge(
     {
-      Name        = "mvsh-databricks-glue-role-${var.environment}",
+      Name        = "databricks-glue-role-${var.environment}",
       Environment = var.environment,
       Component   = "IAM-Glue-Access",
     },
@@ -71,13 +71,13 @@ resource "aws_iam_role_policy_attachment" "aws_glue_standard_attach" {
 }
 
 resource "aws_iam_policy" "iceberg_s3_policy" {
-  name        = "mvsh-databricks-iceberg-s3-policy-${var.environment}"
+  name        = "databricks-iceberg-s3-policy-${var.environment}"
   description = "Acesso estrito de leitura ao S3 do Iceberg para o modulo do Glue"
   policy      = data.aws_iam_policy_document.iceberg_s3_readonly_policy.json
 
   tags = merge(
     {
-      Name        = "mvsh-databricks-iceberg-s3-policy-${var.environment}",
+      Name        = "databricks-iceberg-s3-policy-${var.environment}",
       Environment = var.environment,
       Component   = "IAM-Glue-Access",
     },

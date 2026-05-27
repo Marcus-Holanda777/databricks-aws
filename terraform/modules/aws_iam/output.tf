@@ -17,3 +17,13 @@ output "databricks_glue_role_arn" {
   description = "ARN da Role que o Databricks usa para acessar o AWS Glue Data Catalog"
   value       = aws_iam_role.databricks_glue_role.arn
 }
+
+output "databricks_glue_role_name" {
+  description = "NOME da Role que o Databricks usa para acessar o AWS Glue Data Catalog"
+  value       = aws_iam_role.databricks_glue_role.name
+}
+
+output "iam_aws_account_id" {
+  description = "ID conta AWS"
+  value       = data.aws_caller_identity.current.id
+}

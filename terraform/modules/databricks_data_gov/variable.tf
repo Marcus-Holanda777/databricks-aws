@@ -48,6 +48,11 @@ variable "databricks_glue_role_arn" {
   description = "ARN da Role do IAM que o Databricks assume para acessar o AWS Glue"
 }
 
+variable "aws_account_id" {
+  type        = string
+  description = "ID da conta da AWS"
+}
+
 variable "bucket_glue_data_id" {
   type        = string
   description = "ID do bucket S3 onde os dados do Glue serão armazenados"
@@ -56,4 +61,9 @@ variable "bucket_glue_data_id" {
 variable "aws_region" {
   type        = string
   description = "Regiao AWS onde os recursos serão provisionados"
+}
+
+variable "lakehouse_bucket_name" {
+  type        = string
+  description = "Nome do bucket AWS GLUE"
 }
