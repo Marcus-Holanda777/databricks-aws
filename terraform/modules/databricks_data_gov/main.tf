@@ -237,7 +237,7 @@ resource "databricks_sql_endpoint" "user_warehouse" {
   auto_stop_mins   = 20
 
   warehouse_type            = "PRO"
-  enable_serverless_compute = false
+  enable_serverless_compute = true
 }
 
 resource "databricks_permissions" "warehouse_user_grant" {
